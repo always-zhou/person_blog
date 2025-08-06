@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>健身记录 - Always-zhou</title>
+    <meta name="description" content="运动日志、健身计划、身体变化追踪">
+    <meta name="keywords" content="健身记录,运动日志,健身计划,身体变化">
+    <meta property="og:title" content="健身记录 - Always-zhou">
+    <meta property="og:description" content="运动日志、健身计划、身体变化追踪">
+    <meta name="twitter:title" content="健身记录 - Always-zhou">
+    <meta name="twitter:description" content="运动日志、健身计划、身体变化追踪">
+
+    <script src="https://resource.trickle.so/vendor_lib/unpkg/react@18/umd/react.production.min.js"></script>
+    <script src="https://resource.trickle.so/vendor_lib/unpkg/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://resource.trickle.so/vendor_lib/unpkg/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://resource.trickle.so/vendor_lib/unpkg/lucide-static@0.516.0/font/lucide.css" rel="stylesheet">
+
+    <style type="text/tailwindcss">
+    @layer theme {
+        :root {
+            --primary-color: #10b981;
+            --secondary-color: #059669;
+        }
+    }
+
+    @layer base {
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background: linear-gradient(45deg, #10b981, #059669, #047857, #065f46);
+            background-size: 400% 400%;
+            animation: gradient-shift 8s ease infinite;
+        }
+        
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <!-- 组件脚本 -->
+    <script type="text/babel" src="blog-manager.js"></script>
+    <script type="text/babel" src="components/Header.js"></script>
+    <script type="text/babel" src="components/Footer.js"></script>
+    <script type="text/babel" src="components/SearchBar.js"></script>
+    <script type="text/babel" src="components/PostCard.js"></script>
+    <script type="text/babel" src="components/PostDetail.js"></script>
+    <script type="text/babel" src="components/PostEditor.js"></script>
+    <script type="text/babel" src="fitness-app.js"></script>
+</body>
+</html>
