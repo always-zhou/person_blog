@@ -35,26 +35,34 @@ export default {
         return await handleAPI(request, env, path, method);
       }
 
-      // --- Final Manual Routing Logic (Clean URLs) ---
-      let targetPath = path;
-      const pageExtensions = ['.html', '.js', '.css', '.json', '.png', '.jpg', '.jpeg', '.gif', '.ico'];
+      // --- Precise Route Mapping ---
+      const routeMap = {
+        '/': '/index.html',
+        '/public/': '/index.html',
+        '/public/learning': '/learning.html',
+        '/public/fitness': '/fitness.html', 
+        '/public/life': '/life.html',
+        '/public/photography': '/photography.html',
+        '/public/about': '/about.html',
+        '/public/admin': '/admin.html'
+      };
 
-      // Check if the path already has an extension or is an API call
-      if (!pageExtensions.some(ext => path.endsWith(ext)) && !path.startsWith('/api/')) {
-        if (path === '/') {
-          targetPath = '/index.html';
-        } else {
-          targetPath = `${path}.html`;
-        }
+      let targetPath = path;
+      
+      // Check if this is a mapped route
+      if (routeMap[path]) {
+        targetPath = routeMap[path];
+      }
+      // If path doesn't have extension and isn't in routeMap, try adding .html
+      else if (!path.includes('.') && !path.startsWith('/api/')) {
+        targetPath = `${path}.html`;
       }
 
-      // Create a new request to fetch the rewritten asset
+      // Create request for the target file
       const newRequest = new Request(new URL(targetPath, request.url), request);
-
-      // Fetch the asset
       const response = await env.ASSETS.fetch(newRequest);
 
-      // If asset is not found, fetch the 404 page
+      // Return 404 page if file not found
       if (response.status === 404) {
         const notFoundRequest = new Request(new URL('/404.html', request.url), request);
         return env.ASSETS.fetch(notFoundRequest);
