@@ -2,13 +2,13 @@ function Header() {
   try {
     const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
-    const navItems = [
-      { name: "首页", href: "/" },
-      { name: "学习", href: "/learning" },
-      { name: "健身", href: "/fitness" },
-      { name: "生活", href: "/life" },
-      { name: "摄影", href: "/photography" },
-      { name: "关于我", href: "/about" }
+        const navItems = [
+      { name: "首页", href: "/index.html" },
+      { name: "学习", href: "/learning.html" },
+      { name: "健身", href: "/fitness.html" },
+      { name: "生活", href: "/life.html" },
+      { name: "摄影", href: "/photography.html" },
+      { name: "关于我", href: "/about.html" }
     ];
 
     return (
@@ -25,14 +25,10 @@ function Header() {
             {/* Desktop Navigation */}
             <nav className="hidden md:flex space-x-8">
               {navItems.map((item, index) => (
-                                <a
+                                                <a
                   key={index}
                   href={item.href}
                   className="text-white/90 hover:text-white transition-colors duration-200 font-medium"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    window.location.href = item.href;
-                  }}
                 >
                   {item.name}
                 </a>
@@ -53,15 +49,11 @@ function Header() {
             <nav className="md:hidden mt-4 pb-4 border-t border-white/20">
               <div className="flex flex-col space-y-3 pt-4">
                 {navItems.map((item, index) => (
-                                    <a
+                                                      <a
                     key={index}
                     href={item.href}
                     className="text-white/90 hover:text-white transition-colors duration-200 font-medium py-2"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setIsMenuOpen(false);
-                      window.location.href = item.href;
-                    }}
+                    onClick={() => setIsMenuOpen(false)}
                   >
                     {item.name}
                   </a>

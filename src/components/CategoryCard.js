@@ -2,14 +2,7 @@ function CategoryCard({ title, description, icon, color, page }) {
   try {
     return (
       <div className="card-hover group" data-name="category-card" data-file="components/CategoryCard.js">
-                <a 
-          href={page} 
-          className="block"
-          onClick={(e) => {
-            e.preventDefault();
-            window.location.href = page;
-          }}
-        >
+                        <a href={page} className="block">
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 h-full border border-white/20 hover:border-purple-400/60 transition-all duration-600 relative overflow-hidden hologram">
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1500"></div>
             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-600"></div>
