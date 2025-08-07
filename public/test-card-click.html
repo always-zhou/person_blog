@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试文章卡片点击功能</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .cyber-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(139, 69, 19, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(139, 69, 19, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        // 模拟PostCard组件
+        function PostCard({ post, onClick, showActions = false, onEdit, onDelete }) {
+            const formatDate = (dateString) => {
+                return new Date(dateString).toLocaleDateString('zh-CN', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            };
+
+            const getCategoryColor = (category) => {
+                const colors = {
+                    '学习': 'from-blue-500 to-purple-600',
+                    '健身': 'from-green-500 to-teal-600',
+                    '生活': 'from-pink-500 to-rose-600',
+                    '摄影': 'from-yellow-500 to-orange-600'
+                };
+                return colors[category] || 'from-gray-500 to-gray-600';
+            };
+
+            return (
+                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 transform hover:scale-105 cursor-pointer group">
+                    <div onClick={onClick}>
+                        {/* 分类标签 */}
+                        <div className="flex items-center justify-between mb-4">
+                            <span className={`px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r ${getCategoryColor(post.category)} text-white`}>
+                                {post.category}
+                            </span>
+                            <span className="text-white/60 text-sm">{post.readTime || '5分钟阅读'}</span>
+                        </div>
+
+                        {/* 标题 */}
+                        <h3 className="text-xl font-bold text-white mb-3 group-hover:text-purple-300 transition-colors">
+                            {post.title}
+                        </h3>
+
+                        {/* 摘要 */}
+                        <p className="text-white/80 mb-4 line-clamp-3">
+                            {post.summary || post.content.substring(0, 100) + '...'}
+                        </p>
+
+                        {/* 标签 */}
+                        <div className="flex flex-wrap gap-2 mb-4">
+                            {post.tags.slice(0, 3).map(tag => (
+                                <span key={tag} className="px-2 py-1 bg-white/20 rounded-md text-xs text-white/90">
+                                    {tag}
+                                </span>
+                            ))}
+                            {post.tags.length > 3 && (
+                                <span className="px-2 py-1 bg-white/20 rounded-md text-xs text-white/70">
+                                    +{post.tags.length - 3}
+                                </span>
+                            )}
+                        </div>
+
+                        {/* 日期 */}
+                        <div className="text-white/60 text-sm">
+                            {formatDate(post.createdAt || post.publishDate)}
+                        </div>
+                    </div>
+
+                    {/* 管理操作按钮 */}
+                    {showActions && (
+                        <div className="flex gap-2 mt-4 pt-4 border-t border-white/20">
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onEdit && onEdit(post);
+                                }}
+                                className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                            >
+                                编辑
+                            </button>
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (confirm('确定要删除这篇文章吗？')) {
+                                        onDelete && onDelete(post.id);
+                                    }
+                                }}
+                                className="flex-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+                            >
+                                删除
+                            </button>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+        
+        // 测试应用
+        const TestApp = () => {
+            const [clickedPost, setClickedPost] = React.useState(null);
+            
+            const testPosts = [
+                {
+                    id: 1,
+                    title: "React Hooks 深度解析",
+                    content: "本文将深入探讨React Hooks的工作原理和最佳实践...",
+                    category: "学习",
+                    tags: ["React", "JavaScript", "前端开发"],
+                    createdAt: "2024-01-15",
+                    readTime: "8分钟阅读"
+                },
+                {
+                    id: 2,
+                    title: "健身计划制定指南",
+                    content: "如何制定适合自己的健身计划，包括力量训练和有氧运动...",
+                    category: "健身",
+                    tags: ["健身", "训练计划", "健康生活"],
+                    createdAt: "2024-01-10",
+                    readTime: "6分钟阅读"
+                },
+                {
+                    id: 3,
+                    title: "生活中的小确幸",
+                    content: "记录生活中那些微小但美好的瞬间，感受平凡中的幸福...",
+                    category: "生活",
+                    tags: ["生活感悟", "幸福", "日常"],
+                    createdAt: "2024-01-08",
+                    readTime: "4分钟阅读"
+                }
+            ];
+            
+            const handleCardClick = (post) => {
+                console.log('文章卡片被点击:', post.title);
+                setClickedPost(post);
+                alert(`点击了文章: ${post.title}`);
+            };
+            
+            const handleEdit = (post) => {
+                console.log('编辑文章:', post.title);
+                alert(`编辑文章: ${post.title}`);
+            };
+            
+            const handleDelete = (postId) => {
+                console.log('删除文章ID:', postId);
+                alert(`删除文章ID: ${postId}`);
+            };
+            
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
+                    <div className="cyber-grid"></div>
+                    
+                    <div className="container mx-auto px-4 py-8">
+                        <h1 className="text-4xl font-bold text-white text-center mb-8">
+                            文章卡片点击测试
+                        </h1>
+                        
+                        <div className="mb-6 text-center">
+                            <p className="text-white/80 text-lg">
+                                点击文章卡片应该触发弹窗，点击编辑/删除按钮应该触发对应操作
+                            </p>
+                        </div>
+                        
+                        {clickedPost && (
+                            <div className="mb-6 p-4 bg-green-500/20 border border-green-500/50 rounded-lg">
+                                <p className="text-green-300">
+                                    最后点击的文章: <strong>{clickedPost.title}</strong>
+                                </p>
+                            </div>
+                        )}
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {testPosts.map(post => (
+                                <PostCard
+                                    key={post.id}
+                                    post={post}
+                                    onClick={() => handleCardClick(post)}
+                                    onEdit={handleEdit}
+                                    onDelete={handleDelete}
+                                    showActions={true}
+                                />
+                            ))}
+                        </div>
+                        
+                        <div className="mt-8 text-center">
+                            <p className="text-white/60">
+                                如果点击文章卡片没有反应，说明onClick事件没有正确绑定
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+        
+        // 渲染应用
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<TestApp />);
+    </script>
+</body>
+</html>
