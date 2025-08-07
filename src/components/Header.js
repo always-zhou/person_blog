@@ -4,11 +4,11 @@ function Header() {
 
     const navItems = [
       { name: "首页", href: "/" },
-      { name: "学习", href: "public/learning.html" },
-      { name: "健身", href: "public/fitness.html" },
-      { name: "生活", href: "public/life.html" },
-      { name: "摄影", href: "public/photography.html" },
-      { name: "关于我", href: "public/about.html" }
+      { name: "学习", href: "/learning" },
+      { name: "健身", href: "/fitness" },
+      { name: "生活", href: "/life" },
+      { name: "摄影", href: "/photography" },
+      { name: "关于我", href: "/about" }
     ];
 
     return (

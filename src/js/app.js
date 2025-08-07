@@ -41,28 +41,28 @@ function App() {
         description: "技术学习、读书笔记、知识总结",
         icon: "book-open",
         color: "from-blue-500 to-purple-600",
-        page: "public/learning.html"
+        page: "/learning"
       },
       {
         title: "健身记录",
         description: "运动日志、健身计划、身体变化",
         icon: "dumbbell",
         color: "from-green-500 to-teal-600",
-        page: "public/fitness.html"
+        page: "/fitness"
       },
       {
         title: "生活记录",
         description: "日常生活、心情随笔、生活感悟",
         icon: "heart",
         color: "from-pink-500 to-rose-600",
-        page: "public/life.html"
+        page: "/life"
       },
       {
         title: "摄影作品",
         description: "风景摄影、人像作品、摄影技巧",
         icon: "camera",
         color: "from-yellow-500 to-orange-600",
-        page: "public/photography.html"
+        page: "/photography"
       }
     ];
 
