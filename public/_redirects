@@ -1,0 +1,11 @@
+# Clean URL rewrites
+/about /about.html 200
+/learning /learning.html 200
+/fitness /fitness.html 200
+/life /life.html 200
+/photography /photography.html 200
+/admin /admin.html 200
+
+# Root and SPA fallback
+/ /index.html 200
+/* /index.html 200
