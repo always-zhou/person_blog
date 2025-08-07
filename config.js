@@ -11,6 +11,7 @@ window.BLOG_CONFIG = {
 
 // 将配置暴露到全局变量
 window.WORKER_URL = window.BLOG_CONFIG.WORKER_URL;
+window.CONFIG = window.BLOG_CONFIG; // 为了兼容api-client.js
 
 // 调试信息
 if (window.BLOG_CONFIG.ENABLE_DEBUG) {

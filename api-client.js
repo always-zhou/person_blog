@@ -7,22 +7,25 @@ class APIClient {
 
   // 获取API基础URL
   getAPIBaseURL() {
-    // 在生产环境中，这应该是你的Cloudflare Workers域名
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      // 本地开发环境，回退到本地存储
-      return null;
-    } else {
-      // 生产环境，使用Cloudflare Workers API
-      // 从环境变量获取Worker URL，如果没有则使用默认值
-      const workerURL = window.WORKER_URL || process.env.WORKER_URL;
-      if (workerURL) {
-        return workerURL;
-      }
-      
-      // 如果没有配置环境变量，尝试自动检测
-      // 假设Worker部署在相同的域名下的/api路径
+    // 优先使用配置文件中的WORKER_URL
+    if (window.CONFIG && window.CONFIG.WORKER_URL) {
+      return window.CONFIG.WORKER_URL;
+    }
+    
+    // 从环境变量获取Worker URL
+    const workerURL = window.WORKER_URL || process.env.WORKER_URL;
+    if (workerURL) {
+      return workerURL;
+    }
+    
+    // 如果在生产环境且没有配置，尝试自动检测
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
       return `${window.location.protocol}//${window.location.hostname}/api`;
     }
+    
+    // 本地环境且没有配置Worker URL时，回退到本地存储
+    console.warn('No WORKER_URL configured, falling back to localStorage');
+    return null;
   }
 
   // 通用请求方法
