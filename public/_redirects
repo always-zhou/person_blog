@@ -1,12 +1,12 @@
-# Redirect bare paths to /public/ paths
-/learning /public/learning 302
-/fitness /public/fitness 302
-/life /public/life 302
-/photography /public/photography 302
-/about /public/about 302
-/admin /public/admin 302
+# Direct redirects to /public/ URLs
+/learning https://blog.awlayswm.com/public/learning 302
+/fitness https://blog.awlayswm.com/public/fitness 302
+/life https://blog.awlayswm.com/public/life 302
+/photography https://blog.awlayswm.com/public/photography 302
+/about https://blog.awlayswm.com/public/about 302
+/admin https://blog.awlayswm.com/public/admin 302
 
-# Handle /public/ paths by serving corresponding HTML files
+# Serve HTML files for /public/ paths
 /public/learning /learning.html 200
 /public/fitness /fitness.html 200
 /public/life /life.html 200
