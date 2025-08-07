@@ -1,0 +1,46 @@
+{
+  "name": "personal-blog-system",
+  "version": "1.0.0",
+  "description": "一个现代化的个人博客系统，支持多分类文章管理、本地存储和云端同步",
+  "main": "public/index.html",
+  "scripts": {
+    "start": "python3 -m http.server 8002",
+    "dev": "python3 -m http.server 8002",
+    "build": "echo 'No build step required for this static site'",
+    "deploy:cloudflare": "cd deployment && wrangler deploy",
+    "deploy:docker": "docker-compose up --build",
+    "test": "echo 'No tests specified yet'",
+    "lint": "echo 'No linting configured yet'",
+    "debug": "open http://localhost:8002/public/comprehensive-debug.html"
+  },
+  "keywords": [
+    "blog",
+    "personal-website",
+    "react",
+    "tailwindcss",
+    "cloudflare-workers",
+    "pwa",
+    "responsive",
+    "markdown"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/personal-blog-system.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/personal-blog-system/issues"
+  },
+  "homepage": "https://github.com/yourusername/personal-blog-system#readme",
+  "devDependencies": {},
+  "dependencies": {},
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}
