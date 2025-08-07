@@ -15,9 +15,9 @@ id = "32793f9a2ae74667a543c9881675c75c"
 ENVIRONMENT = "production"
 
 # 路由配置（部署后配置）
-# routes = [
-#   { pattern = "yourdomain.com/api/*", zone_name = "yourdomain.com" }
-# ]
+routes = [
+  { pattern = "awlayswm.com/api/*", zone_name = "awlayswm.com" }
+]
 
 # 开发环境配置
 [env.development]
