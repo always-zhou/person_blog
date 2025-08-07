@@ -2,7 +2,7 @@
 window.BLOG_CONFIG = {
   // Cloudflare Worker API 地址
   // 请替换为你的实际 Worker 域名
-  WORKER_URL: 'https://my-blog-worker.alwaysgototop.workers.dev',
+  WORKER_URL: 'https://personal-blog-api.alwaysgototop.workers.dev',
   
   // 其他配置选项
   API_TIMEOUT: 10000, // API 请求超时时间（毫秒）
