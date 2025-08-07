@@ -113,26 +113,23 @@ function LifeApp() {
     // PostEditor弹窗现在作为覆盖层渲染
 
     if (currentView === 'detail' && selectedPostId) {
-      const post = blogManager.getPost(selectedPostId);
-      if (post) {
-        return (
-          <div className="min-h-screen bg-gradient-to-br from-pink-900 via-rose-900 to-red-900">
-            <Header />
-            <div className="pt-20">
-              <PostDetail
-                post={post}
-                onBack={handleBackToList}
-                onEdit={() => handleEditPost(post)}
-                onDelete={() => {
-                  handleDeletePost(post.id);
-                  handleBackToList();
-                }}
-              />
-            </div>
-            <Footer />
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-pink-900 via-rose-900 to-red-900">
+          <Header />
+          <div className="pt-20">
+            <PostDetail
+              postId={selectedPostId}
+              onBack={handleBackToList}
+              onEdit={(post) => handleEditPost(post)}
+              onDelete={(postId) => {
+                handleDeletePost(postId);
+                handleBackToList();
+              }}
+            />
           </div>
-        );
-      }
+          <Footer />
+        </div>
+      );
     }
 
     return (

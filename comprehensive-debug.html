@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>综合诊断工具</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .section h2 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        .button-group {
+            margin: 15px 0;
+        }
+        .button-group button {
+            margin: 5px;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-primary { background: #007bff; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-warning { background: #ffc107; color: black; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-info { background: #17a2b8; color: white; }
+        .result {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+        .info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+        .device-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .device-card {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        .device-card h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 综合诊断工具</h1>
+        <p>这个工具可以帮助诊断数据同步和文章查看问题</p>
+        
+        <!-- 设备信息 -->
+        <div class="section">
+            <h2>📱 设备信息</h2>
+            <div class="device-info" id="device-info"></div>
+        </div>
+        
+        <!-- 配置检查 -->
+        <div class="section">
+            <h2>⚙️ 配置检查</h2>
+            <div class="button-group">
+                <button class="btn-primary" onclick="checkConfiguration()">检查配置</button>
+            </div>
+            <div id="config-result" class="result"></div>
+        </div>
+        
+        <!-- 存储状态 -->
+        <div class="section">
+            <h2>💾 存储状态</h2>
+            <div class="button-group">
+                <button class="btn-info" onclick="checkStorageStatus()">检查存储状态</button>
+                <button class="btn-warning" onclick="compareStorageData()">对比存储数据</button>
+            </div>
+            <div id="storage-result" class="result"></div>
+        </div>
+        
+        <!-- API 测试 -->
+        <div class="section">
+            <h2>🌐 API 测试</h2>
+            <div class="button-group">
+                <button class="btn-primary" onclick="testAPIHealth()">测试API健康状态</button>
+                <button class="btn-info" onclick="testGetPosts()">测试获取文章列表</button>
+                <button class="btn-success" onclick="testGetSinglePost()">测试获取单篇文章</button>
+                <button class="btn-warning" onclick="testCreatePost()">测试创建文章</button>
+            </div>
+            <div id="api-result" class="result"></div>
+        </div>
+        
+        <!-- 文章查看测试 -->
+        <div class="section">
+            <h2>📖 文章查看测试</h2>
+            <div class="button-group">
+                <button class="btn-primary" onclick="testPostViewing()">测试文章查看功能</button>
+                <button class="btn-info" onclick="debugPostIDs()">调试文章ID问题</button>
+            </div>
+            <div id="post-viewing-result" class="result"></div>
+        </div>
+        
+        <!-- 数据同步 -->
+        <div class="section">
+            <h2>🔄 数据同步</h2>
+            <div class="button-group">
+                <button class="btn-success" onclick="syncLocalToKV()">同步本地到云端</button>
+                <button class="btn-success" onclick="syncKVToLocal()">同步云端到本地</button>
+                <button class="btn-warning" onclick="forceUseKV()">强制使用云端存储</button>
+                <button class="btn-warning" onclick="forceUseLocal()">强制使用本地存储</button>
+            </div>
+            <div id="sync-result" class="result"></div>
+        </div>
+        
+        <!-- 修复工具 -->
+        <div class="section">
+            <h2>🔨 修复工具</h2>
+            <div class="button-group">
+                <button class="btn-success" onclick="fixPostIDs()">修复文章ID格式</button>
+                <button class="btn-danger" onclick="clearAllData()">清空所有数据</button>
+                <button class="btn-info" onclick="resetToDefaults()">重置为默认数据</button>
+            </div>
+            <div id="fix-result" class="result"></div>
+        </div>
+    </div>
+    
+    <!-- 引入必要的脚本 -->
+    <script src="config.js"></script>
+    <script src="blog-manager.js"></script>
+    <script src="cloudflare-kv-manager.js"></script>
+    <script src="blog-manager-kv.js"></script>
+    <script src="api-client.js"></script>
+    <script src="hybrid-blog-manager.js"></script>
+    
+    <script>
+        let hybridManager;
+        let localManager;
+        let apiClient;
+        
+        // 页面加载时初始化
+        window.addEventListener('DOMContentLoaded', async function() {
+            displayDeviceInfo();
+            await initializeManagers();
+        });
+        
+        function displayDeviceInfo() {
+            const deviceInfoDiv = document.getElementById('device-info');
+            const userAgent = navigator.userAgent;
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+            
+            deviceInfoDiv.innerHTML = `
+                <div class="device-card">
+                    <h3>设备类型</h3>
+                    <p>${isMobile ? '📱 移动设备' : '💻 桌面设备'}</p>
+                </div>
+                <div class="device-card">
+                    <h3>浏览器信息</h3>
+                    <p>${navigator.userAgent}</p>
+                </div>
+                <div class="device-card">
+                    <h3>网络信息</h3>
+                    <p>域名: ${window.location.hostname}</p>
+                    <p>协议: ${window.location.protocol}</p>
+                    <p>端口: ${window.location.port || '默认'}</p>
+                </div>
+                <div class="device-card">
+                    <h3>存储支持</h3>
+                    <p>localStorage: ${typeof(Storage) !== 'undefined' ? '✅ 支持' : '❌ 不支持'}</p>
+                    <p>sessionStorage: ${typeof(sessionStorage) !== 'undefined' ? '✅ 支持' : '❌ 不支持'}</p>
+                </div>
+            `;
+        }
+        
+        async function initializeManagers() {
+            try {
+                hybridManager = new HybridBlogManager();
+                localManager = new BlogManager();
+                apiClient = new APIClient();
+                
+                await hybridManager.initialize();
+                console.log('管理器初始化完成');
+            } catch (error) {
+                console.error('初始化管理器失败:', error);
+            }
+        }
+        
+        function checkConfiguration() {
+            const resultDiv = document.getElementById('config-result');
+            const config = window.CONFIG || {};
+            const blogConfig = window.BLOG_CONFIG || {};
+            
+            resultDiv.className = 'result info';
+            resultDiv.textContent = `配置检查结果:
+
+window.CONFIG: ${JSON.stringify(config, null, 2)}
+
+window.BLOG_CONFIG: ${JSON.stringify(blogConfig, null, 2)}
+
+window.WORKER_URL: ${window.WORKER_URL || '未设置'}
+
+配置状态: ${config.WORKER_URL ? '✅ 已配置' : '❌ 未配置'}`;
+        }
+        
+        async function checkStorageStatus() {
+            const resultDiv = document.getElementById('storage-result');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = '正在检查存储状态...';
+            
+            try {
+                const storageInfo = hybridManager.getStorageInfo();
+                const apiInfo = apiClient.getAPIInfo();
+                
+                let statusClass = 'info';
+                let statusText = '';
+                
+                if (storageInfo.type.includes('KV')) {
+                    statusClass = 'success';
+                    statusText = '✅ 使用云端KV存储 - 数据会同步';
+                } else {
+                    statusClass = 'warning';
+                    statusText = '⚠️ 使用本地存储 - 数据不会同步';
+                }
+                
+                resultDiv.className = `result ${statusClass}`;
+                resultDiv.textContent = `${statusText}
+
+详细信息:
+存储类型: ${storageInfo.type}
+初始化状态: ${storageInfo.initialized ? '已初始化' : '未初始化'}
+API基础URL: ${apiInfo.baseURL || '未配置'}
+环境: ${apiInfo.environment}
+
+API健康检查: ${await apiClient.checkAPIHealth() ? '✅ 健康' : '❌ 不健康'}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `检查失败: ${error.message}`;
+            }
+        }
+        
+        async function compareStorageData() {
+            const resultDiv = document.getElementById('storage-result');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = '正在对比存储数据...';
+            
+            try {
+                // 获取本地数据
+                const localPosts = localManager.getPosts();
+                
+                // 获取KV数据
+                let kvPosts = [];
+                try {
+                    kvPosts = await apiClient.getPosts() || [];
+                } catch (error) {
+                    console.warn('无法获取KV数据:', error);
+                }
+                
+                resultDiv.className = 'result info';
+                resultDiv.textContent = `数据对比结果:
+
+本地存储文章数: ${localPosts.length}
+云端KV文章数: ${kvPosts.length}
+
+本地文章列表:
+${JSON.stringify(localPosts.map(p => ({id: p.id, title: p.title, createdAt: p.createdAt})), null, 2)}
+
+云端文章列表:
+${JSON.stringify(kvPosts.map(p => ({id: p.id, title: p.title, createdAt: p.createdAt})), null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `对比失败: ${error.message}`;
+            }
+        }
+        
+        async function testAPIHealth() {
+            const resultDiv = document.getElementById('api-result');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = '正在测试API健康状态...';
+            
+            try {
+                const isHealthy = await apiClient.checkAPIHealth();
+                const apiInfo = apiClient.getAPIInfo();
+                
+                resultDiv.className = `result ${isHealthy ? 'success' : 'error'}`;
+                resultDiv.textContent = `API健康检查: ${isHealthy ? '✅ 健康' : '❌ 不健康'}
+
+API信息:
+${JSON.stringify(apiInfo, null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `API测试失败: ${error.message}`;
+            }
+        }
+        
+        async function testGetPosts() {
+            const resultDiv = document.getElementById('api-result');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = '正在测试获取文章列表...';
+            
+            try {
+                const posts = await apiClient.getPosts();
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ 获取文章列表成功！
+
+文章数量: ${posts ? posts.length : 0}
+
+文章列表:
+${JSON.stringify(posts, null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `获取文章列表失败: ${error.message}`;
+            }
+        }
+        
+        async function testGetSinglePost() {
+            const resultDiv = document.getElementById('api-result');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = '正在测试获取单篇文章...';
+            
+            try {
+                // 先获取文章列表，然后测试获取第一篇文章
+                const posts = await apiClient.getPosts();
+                if (!posts || posts.length === 0) {
+                    resultDiv.className = 'result warning';
+                    resultDiv.textContent = '⚠️ 没有文章可供测试';
+                    return;
+                }
+                
+                const firstPostId = posts[0].id;
+                const post = await apiClient.getPost(firstPostId);
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ 获取单篇文章成功！
+
+测试文章ID: ${firstPostId}
+
+文章详情:
+${JSON.stringify(post, null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `获取单篇文章失败: ${error.message}`;
+            }
+        }
+        
+        async function testCreatePost() {
+            const resultDiv = document.getElementById('api-result');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = '正在测试创建文章...';
+            
+            try {
+                const testPost = {
+                    title: `诊断测试文章 - ${new Date().toLocaleString()}`,
+                    content: `这是一篇用于诊断的测试文章，创建时间：${new Date().toISOString()}`,
+                    summary: '诊断测试文章',
+                    category: '测试',
+                    tags: ['诊断', '测试']
+                };
+                
+                const result = await apiClient.createPost(testPost);
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ 创建文章成功！
+
+创建结果:
+${JSON.stringify(result, null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `创建文章失败: ${error.message}`;
+            }
+        }
+        
+        async function testPostViewing() {
+            const resultDiv = document.getElementById('post-viewing-result');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = '正在测试文章查看功能...';
+            
+            try {
+                // 测试混合管理器的getPost方法
+                const posts = await hybridManager.getPosts();
+                if (!posts || posts.length === 0) {
+                    resultDiv.className = 'result warning';
+                    resultDiv.textContent = '⚠️ 没有文章可供测试';
+                    return;
+                }
+                
+                const testResults = [];
+                
+                // 测试前3篇文章
+                for (let i = 0; i < Math.min(3, posts.length); i++) {
+                    const post = posts[i];
+                    const retrievedPost = await hybridManager.getPost(post.id);
+                    
+                    testResults.push({
+                        originalId: post.id,
+                        originalIdType: typeof post.id,
+                        title: post.title,
+                        retrievedPost: retrievedPost ? '✅ 成功' : '❌ 失败',
+                        retrievedTitle: retrievedPost ? retrievedPost.title : '无'
+                    });
+                }
+                
+                resultDiv.className = 'result info';
+                resultDiv.textContent = `文章查看测试结果:
+
+${JSON.stringify(testResults, null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `测试失败: ${error.message}`;
+            }
+        }
+        
+        async function debugPostIDs() {
+            const resultDiv = document.getElementById('post-viewing-result');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = '正在调试文章ID问题...';
+            
+            try {
+                // 获取本地和云端的文章
+                const localPosts = localManager.getPosts();
+                const kvPosts = await apiClient.getPosts() || [];
+                
+                const debugInfo = {
+                    localPosts: localPosts.map(p => ({ id: p.id, idType: typeof p.id, title: p.title })),
+                    kvPosts: kvPosts.map(p => ({ id: p.id, idType: typeof p.id, title: p.title })),
+                    localGetPostTest: {},
+                    kvGetPostTest: {}
+                };
+                
+                // 测试本地getPost
+                if (localPosts.length > 0) {
+                    const firstLocal = localPosts[0];
+                    debugInfo.localGetPostTest = {
+                        originalId: firstLocal.id,
+                        stringId: String(firstLocal.id),
+                        intId: parseInt(firstLocal.id),
+                        getPostWithOriginal: localManager.getPost(firstLocal.id) ? '✅' : '❌',
+                        getPostWithString: localManager.getPost(String(firstLocal.id)) ? '✅' : '❌',
+                        getPostWithInt: localManager.getPost(parseInt(firstLocal.id)) ? '✅' : '❌'
+                    };
+                }
+                
+                // 测试KV getPost
+                if (kvPosts.length > 0) {
+                    const firstKV = kvPosts[0];
+                    debugInfo.kvGetPostTest = {
+                        originalId: firstKV.id,
+                        stringId: String(firstKV.id),
+                        intId: parseInt(firstKV.id),
+                        getPostWithOriginal: await apiClient.getPost(firstKV.id) ? '✅' : '❌',
+                        getPostWithString: await apiClient.getPost(String(firstKV.id)) ? '✅' : '❌'
+                    };
+                }
+                
+                resultDiv.className = 'result info';
+                resultDiv.textContent = `文章ID调试信息:
+
+${JSON.stringify(debugInfo, null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `调试失败: ${error.message}`;
+            }
+        }
+        
+        async function syncLocalToKV() {
+            const resultDiv = document.getElementById('sync-result');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = '正在同步本地数据到云端...';
+            
+            try {
+                const localPosts = localManager.getPosts();
+                let successCount = 0;
+                const errors = [];
+                
+                for (const post of localPosts) {
+                    try {
+                        await apiClient.createPost(post);
+                        successCount++;
+                    } catch (error) {
+                        errors.push(`${post.title}: ${error.message}`);
+                    }
+                }
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ 同步完成！
+
+成功同步: ${successCount}/${localPosts.length} 篇文章
+
+错误信息:
+${errors.join('\n')}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `同步失败: ${error.message}`;
+            }
+        }
+        
+        async function syncKVToLocal() {
+            const resultDiv = document.getElementById('sync-result');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = '正在同步云端数据到本地...';
+            
+            try {
+                const kvPosts = await apiClient.getPosts() || [];
+                
+                // 清空本地数据
+                localStorage.removeItem('blogPosts');
+                localManager.posts = [];
+                
+                // 添加KV数据到本地
+                for (const post of kvPosts) {
+                    localManager.addPost(post);
+                }
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ 同步完成！
+
+成功同步 ${kvPosts.length} 篇文章到本地存储`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `同步失败: ${error.message}`;
+            }
+        }
+        
+        async function forceUseKV() {
+            const resultDiv = document.getElementById('sync-result');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = '正在强制切换到云端存储...';
+            
+            try {
+                hybridManager.useAPI = true;
+                await hybridManager.kvManager.initialize();
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = '✅ 已强制切换到云端KV存储模式';
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `切换失败: ${error.message}`;
+            }
+        }
+        
+        function forceUseLocal() {
+            const resultDiv = document.getElementById('sync-result');
+            hybridManager.useAPI = false;
+            resultDiv.className = 'result success';
+            resultDiv.textContent = '✅ 已强制切换到本地存储模式';
+        }
+        
+        async function fixPostIDs() {
+            const resultDiv = document.getElementById('fix-result');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = '正在修复文章ID格式...';
+            
+            try {
+                // 修复本地存储的ID格式
+                const localPosts = localManager.getPosts();
+                let fixedCount = 0;
+                
+                for (const post of localPosts) {
+                    if (typeof post.id === 'string') {
+                        post.id = parseInt(post.id) || Date.now();
+                        fixedCount++;
+                    }
+                }
+                
+                if (fixedCount > 0) {
+                    localManager.savePosts();
+                }
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ ID格式修复完成！
+
+修复了 ${fixedCount} 篇文章的ID格式`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `修复失败: ${error.message}`;
+            }
+        }
+        
+        async function clearAllData() {
+            if (!confirm('确定要清空所有数据吗？此操作不可恢复！')) {
+                return;
+            }
+            
+            const resultDiv = document.getElementById('fix-result');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = '正在清空所有数据...';
+            
+            try {
+                // 清空本地数据
+                localStorage.removeItem('blogPosts');
+                localManager.posts = [];
+                
+                // 尝试清空KV数据
+                try {
+                    const kvPosts = await apiClient.getPosts() || [];
+                    for (const post of kvPosts) {
+                        await apiClient.deletePost(post.id);
+                    }
+                } catch (error) {
+                    console.warn('清空KV数据失败:', error);
+                }
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = '✅ 所有数据已清空';
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `清空数据失败: ${error.message}`;
+            }
+        }
+        
+        function resetToDefaults() {
+            const resultDiv = document.getElementById('fix-result');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = '正在重置为默认数据...';
+            
+            try {
+                // 清空现有数据
+                localStorage.removeItem('blogPosts');
+                
+                // 重新创建管理器，这会加载默认数据
+                localManager = new BlogManager();
+                
+                resultDiv.className = 'result success';
+                resultDiv.textContent = '✅ 已重置为默认数据';
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `重置失败: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

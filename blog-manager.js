@@ -99,7 +99,16 @@ class BlogManager {
 
   // 获取单篇文章
   getPost(id) {
-    return this.posts.find(post => post.id === parseInt(id));
+    // 支持多种ID格式的匹配
+    return this.posts.find(post => {
+      // 直接匹配
+      if (post.id === id) return true;
+      // 字符串匹配
+      if (String(post.id) === String(id)) return true;
+      // 数字匹配
+      if (parseInt(post.id) === parseInt(id)) return true;
+      return false;
+    });
   }
 
   // 搜索文章

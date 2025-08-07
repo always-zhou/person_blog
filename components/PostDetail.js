@@ -1,4 +1,4 @@
-function PostDetail({ postId, onBack }) {
+function PostDetail({ postId, onBack, onEdit, onDelete }) {
   const [post, setPost] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
 
@@ -68,12 +68,35 @@ function PostDetail({ postId, onBack }) {
       <Header />
       <div className="pt-32 pb-20 px-4">
         <div className="max-w-4xl mx-auto">
-          <button 
-            onClick={onBack}
-            className="mb-6 text-white/80 hover:text-white flex items-center gap-2 transition-colors"
-          >
-            <span className="icon-arrow-left"></span> 返回列表
-          </button>
+          <div className="flex justify-between items-center mb-6">
+            <button 
+              onClick={onBack}
+              className="text-white/80 hover:text-white flex items-center gap-2 transition-colors"
+            >
+              <span className="icon-arrow-left"></span> 返回列表
+            </button>
+            
+            {(onEdit || onDelete) && (
+              <div className="flex gap-3">
+                {onEdit && (
+                  <button
+                    onClick={() => onEdit(post)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                  >
+                    <span className="icon-edit"></span> 编辑
+                  </button>
+                )}
+                {onDelete && (
+                  <button
+                    onClick={() => onDelete(post.id)}
+                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+                  >
+                    <span className="icon-trash"></span> 删除
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
           
           <article className="bg-white/10 backdrop-blur-md rounded-2xl p-8 border border-white/20">
             <header className="mb-8">

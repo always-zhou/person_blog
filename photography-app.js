@@ -113,7 +113,6 @@ function PhotographyApp() {
     // PostEditor弹窗现在作为覆盖层渲染
 
     if (currentView === 'detail' && selectedPostId) {
-      const post = blogManager.getPost(selectedPostId);
       return (
         <div className="min-h-screen gradient-shift relative">
           <div className="relative z-10">
@@ -121,11 +120,11 @@ function PhotographyApp() {
             <main className="pt-32 pb-20 px-4">
               <div className="max-w-4xl mx-auto">
                 <PostDetail
-                  post={post}
+                  postId={selectedPostId}
                   onBack={handleBackToList}
-                  onEdit={() => handleEditPost(post)}
-                  onDelete={() => {
-                    handleDeletePost(post.id);
+                  onEdit={(post) => handleEditPost(post)}
+                  onDelete={(postId) => {
+                    handleDeletePost(postId);
                     handleBackToList();
                   }}
                 />
