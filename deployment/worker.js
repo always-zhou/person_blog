@@ -35,9 +35,32 @@ export default {
         return await handleAPI(request, env, path, method);
       }
 
-      // For all other requests, fallback to the static asset server, 
-      // which respects the _redirects file for routing.
-      return env.ASSETS.fetch(request);
+      // --- Final Manual Routing Logic (Clean URLs) ---
+      let targetPath = path;
+      const pageExtensions = ['.html', '.js', '.css', '.json', '.png', '.jpg', '.jpeg', '.gif', '.ico'];
+
+      // Check if the path already has an extension or is an API call
+      if (!pageExtensions.some(ext => path.endsWith(ext)) && !path.startsWith('/api/')) {
+        if (path === '/') {
+          targetPath = '/index.html';
+        } else {
+          targetPath = `${path}.html`;
+        }
+      }
+
+      // Create a new request to fetch the rewritten asset
+      const newRequest = new Request(new URL(targetPath, request.url), request);
+
+      // Fetch the asset
+      const response = await env.ASSETS.fetch(newRequest);
+
+      // If asset is not found, fetch the 404 page
+      if (response.status === 404) {
+        const notFoundRequest = new Request(new URL('/404.html', request.url), request);
+        return env.ASSETS.fetch(notFoundRequest);
+      }
+
+      return response;
     } catch (error) {
       console.error('Worker error:', error);
       return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
