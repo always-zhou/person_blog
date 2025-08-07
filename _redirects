@@ -1,27 +1,15 @@
-# Cloudflare Pages 重定向配置
+# 主页重定向
+/index.html /public/index.html 301
 
-# 主页路由
-/ /public/index.html 200
+# 分类页面重定向
+/learning /public/learning.html 301
+/fitness /public/fitness.html 301
+/life /public/life.html 301
+/photography /public/photography.html 301
+/about /public/about.html 301
+/admin /public/admin.html 301
 
-# 分类页面路由
-/learning /public/learning.html 200
-/fitness /public/fitness.html 200
-/life /public/life.html 200
-/photography /public/photography.html 200
-/about /public/about.html 200
-/admin /public/admin.html 200
-
-# 调试和测试页面
-/debug /public/comprehensive-debug.html 200
-/test /public/test-api.html 200
-/sync-test /public/sync-test.html 200
-
-# 处理带.html后缀的直接访问
-/public/* /public/:splat 200
-
-# 静态资源
-/src/* /src/:splat 200
-/trickle/* /trickle/:splat 200
-
-# 404页面回退到首页
-/* /public/index.html 404
+# 调试页面重定向
+/debug /public/comprehensive-debug.html 301
+/test /public/test-api.html 301
+/sync-test /public/sync-test.html 301
