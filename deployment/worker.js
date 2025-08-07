@@ -37,7 +37,10 @@ export default {
       }
       
       // 静态文件服务（如果需要）
-      return await handleStaticFiles(request, env);
+      // For SPA, always return index.html for non-API routes
+      return new Response(env.ASSETS.fetch(request).body, {
+        headers: { 'Content-Type': 'text/html' },
+      });
       
     } catch (error) {
       console.error('Worker error:', error);
