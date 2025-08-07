@@ -39,8 +39,18 @@ function LifeApp() {
     const [editingPost, setEditingPost] = React.useState(null);
     const [blogManager] = React.useState(() => new HybridBlogManager());
 
+    // 初始化blogManager并加载文章数据
     React.useEffect(() => {
-      loadPosts();
+      const initializeAndLoadPosts = async () => {
+        try {
+          await blogManager.initialize(); // 确保初始化
+          await loadPosts();
+        } catch (error) {
+          console.error('Error initializing blog manager:', error);
+        }
+      };
+      
+      initializeAndLoadPosts();
     }, [searchTerm]);
 
     const loadPosts = async () => {
