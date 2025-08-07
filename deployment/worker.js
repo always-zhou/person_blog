@@ -31,14 +31,13 @@ export default {
     const method = request.method;
 
     try {
-      // API 路由
       if (path.startsWith('/api/')) {
         return await handleAPI(request, env, path, method);
       }
-      
-            // 静态文件服务
+
+      // For all other requests, fallback to the static asset server, 
+      // which respects the _redirects file for routing.
       return env.ASSETS.fetch(request);
-      
     } catch (error) {
       console.error('Worker error:', error);
       return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
@@ -308,13 +307,4 @@ async function handleStatsAPI(request, env, method) {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
-}
-
-// 处理静态文件（可选）
-async function handleStaticFiles(request, env) {
-  // 这里可以添加静态文件服务逻辑
-  // 或者重定向到主页
-  return new Response('Blog API Server', {
-    headers: { ...corsHeaders, 'Content-Type': 'text/plain' },
-  });
 }

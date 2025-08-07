@@ -5,7 +5,7 @@
   "main": "public/index.html",
   "scripts": {
     "start": "python3 -m http.server 8002",
-    "dev": "python3 -m http.server 8002",
+    "dev": "copy deployment\\worker.js public\\_worker.js && wrangler pages dev public --kv=BLOG_KV",
     "build": "echo 'No build step required for this static site'",
     "deploy:cloudflare": "cd deployment && wrangler deploy",
     "deploy:docker": "docker-compose up --build",
@@ -33,7 +33,9 @@
     "url": "https://github.com/yourusername/personal-blog-system/issues"
   },
   "homepage": "https://github.com/yourusername/personal-blog-system#readme",
-  "devDependencies": {},
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  },
   "dependencies": {},
   "engines": {
     "node": ">=14.0.0"

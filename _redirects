@@ -1,7 +1,11 @@
+# Page rewrites
 / /index.html 200
-/learning /public/learning.html 200
-/fitness /public/fitness.html 200
-/life /public/life.html 200
-/photography /public/photography.html 200
-/about /public/about.html 200
-/admin /public/admin.html 200
+/learning /learning.html 200
+/fitness /fitness.html 200
+/life /life.html 200
+/photography /photography.html 200
+/about /about.html 200
+/admin /admin.html 200
+
+# SPA Fallback
+/* /index.html 200
