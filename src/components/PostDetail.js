@@ -6,7 +6,9 @@ function PostDetail({ postId, onBack, onEdit, onDelete }) {
     const loadPost = async () => {
       try {
         const blogManager = new HybridBlogManager();
+        await blogManager.initialize(); // 确保初始化
         const foundPost = await blogManager.getPost(postId);
+        console.log('PostDetail loaded post:', foundPost); // 添加调试日志
         setPost(foundPost);
       } catch (error) {
         console.error('Error loading post:', error);

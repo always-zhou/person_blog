@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试所有分类文章加载</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="../src/js/api-client.js"></script>
+    <script src="../src/js/cloudflare-kv-manager.js"></script>
+    <script src="../src/js/blog-manager.js"></script>
+    <script src="../src/js/blog-manager-kv.js"></script>
+    <script src="../src/js/hybrid-blog-manager.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .category-section {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .post-item {
+            background: #f9f9f9;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid #ddd;
+        }
+        .post-item:hover {
+            background: #e9e9e9;
+        }
+        .post-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .post-meta {
+            color: #666;
+            font-size: 14px;
+        }
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <h1>测试所有分类文章加载和点击</h1>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        function TestAllCategories() {
+            const [categoriesData, setCategoriesData] = React.useState({
+                '学习': { posts: [], loading: true, error: null },
+                '健身': { posts: [], loading: true, error: null },
+                '生活': { posts: [], loading: true, error: null },
+                '摄影': { posts: [], loading: true, error: null }
+            });
+            const [blogManager] = React.useState(() => new HybridBlogManager());
+            const [clickResults, setClickResults] = React.useState({});
+
+            React.useEffect(() => {
+                loadAllCategories();
+            }, []);
+
+            const loadAllCategories = async () => {
+                const categories = ['学习', '健身', '生活', '摄影'];
+                
+                for (const category of categories) {
+                    try {
+                        console.log(`开始加载 ${category} 分类文章...`);
+                        const posts = await blogManager.getPosts(category);
+                        console.log(`${category} 分类加载完成:`, posts);
+                        
+                        setCategoriesData(prev => ({
+                            ...prev,
+                            [category]: {
+                                posts: posts || [],
+                                loading: false,
+                                error: null
+                            }
+                        }));
+                    } catch (error) {
+                        console.error(`加载 ${category} 分类失败:`, error);
+                        setCategoriesData(prev => ({
+                            ...prev,
+                            [category]: {
+                                posts: [],
+                                loading: false,
+                                error: error.message
+                            }
+                        }));
+                    }
+                }
+            };
+
+            const handlePostClick = (category, post) => {
+                console.log(`点击了 ${category} 分类的文章:`, post);
+                const key = `${category}-${post.id}`;
+                setClickResults(prev => ({
+                    ...prev,
+                    [key]: {
+                        timestamp: new Date().toLocaleTimeString(),
+                        success: true
+                    }
+                }));
+                alert(`成功点击了 ${category} 分类的文章: ${post.title}`);
+            };
+
+            return (
+                <div>
+                    {Object.entries(categoriesData).map(([category, data]) => (
+                        <div key={category} className="category-section">
+                            <h2>{category} 分类</h2>
+                            
+                            {data.loading && (
+                                <div className="loading">正在加载 {category} 文章...</div>
+                            )}
+                            
+                            {data.error && (
+                                <div className="error">加载失败: {data.error}</div>
+                            )}
+                            
+                            {!data.loading && !data.error && (
+                                <div>
+                                    <div className="success">
+                                        成功加载 {data.posts.length} 篇文章
+                                    </div>
+                                    
+                                    {data.posts.length === 0 ? (
+                                        <div>暂无文章</div>
+                                    ) : (
+                                        data.posts.map(post => {
+                                            const clickKey = `${category}-${post.id}`;
+                                            const clickResult = clickResults[clickKey];
+                                            
+                                            return (
+                                                <div 
+                                                    key={post.id} 
+                                                    className="post-item"
+                                                    onClick={() => handlePostClick(category, post)}
+                                                >
+                                                    <div className="post-title">{post.title}</div>
+                                                    <div className="post-meta">
+                                                        ID: {post.id} | 创建时间: {post.createdAt}
+                                                        {clickResult && (
+                                                            <span style={{color: 'green', marginLeft: '10px'}}>
+                                                                ✓ 已点击 ({clickResult.timestamp})
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<TestAllCategories />);
+    </script>
+</body>
+</html>

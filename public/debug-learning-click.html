@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning页面点击调试</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/lucide-static@0.516.0/font/lucide.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 min-h-screen">
+    <div id="root"></div>
+    
+    <!-- 按正确顺序加载脚本 -->
+    <script src="../src/js/config.js"></script>
+    <script src="../src/js/cloudflare-kv-manager.js"></script>
+    <script src="../src/js/api-client.js"></script>
+    <script src="../src/js/blog-manager.js"></script>
+    <script src="../src/js/blog-manager-kv.js"></script>
+    <script src="../src/js/hybrid-blog-manager.js"></script>
+    
+    <script type="text/babel">
+        function DebugPostCard({ post, onClick, index }) {
+            console.log(`PostCard ${index} rendered:`, post);
+            
+            const handleClick = (e) => {
+                console.log(`PostCard ${index} clicked:`, {
+                    event: e,
+                    post: post,
+                    onClick: onClick
+                });
+                
+                if (onClick) {
+                    console.log(`Calling onClick for post ${post.id}`);
+                    onClick(post.id);
+                } else {
+                    console.log('No onClick handler provided');
+                }
+            };
+            
+            return (
+                <div 
+                    className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 transform hover:scale-105 cursor-pointer group"
+                    onClick={handleClick}
+                    style={{ border: '2px solid #ff0000' }} // 红色边框便于识别
+                >
+                    <div className="mb-2">
+                        <span className="px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+                            {post.category}
+                        </span>
+                    </div>
+                    
+                    <h3 className="text-xl font-bold text-white mb-3 group-hover:text-purple-300 transition-colors">
+                        {post.title}
+                    </h3>
+                    
+                    <p className="text-white/80 mb-4">
+                        {post.summary}
+                    </p>
+                    
+                    <div className="text-white/60 text-sm">
+                        ID: {post.id} | 点击计数器: <span id={`click-count-${index}`}>0</span>
+                    </div>
+                </div>
+            );
+        }
+        
+        function DebugLearningApp() {
+            const [posts, setPosts] = React.useState([]);
+            const [loading, setLoading] = React.useState(true);
+            const [error, setError] = React.useState(null);
+            const [clickLog, setClickLog] = React.useState([]);
+            const [blogManager] = React.useState(() => new HybridBlogManager());
+            
+            React.useEffect(() => {
+                loadPosts();
+            }, []);
+            
+            const loadPosts = async () => {
+                try {
+                    console.log('开始加载文章...');
+                    setLoading(true);
+                    
+                    // 初始化管理器
+                    await blogManager.initialize();
+                    console.log('BlogManager初始化完成');
+                    
+                    // 获取学习分类的文章
+                    const learningPosts = await blogManager.getPosts('学习');
+                    console.log('获取到的学习文章:', learningPosts);
+                    
+                    setPosts(learningPosts);
+                    setError(null);
+                } catch (err) {
+                    console.error('加载文章失败:', err);
+                    setError(err.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            
+            const handlePostClick = (postId) => {
+                const timestamp = new Date().toLocaleTimeString();
+                const logEntry = `${timestamp}: 点击了文章 ${postId}`;
+                console.log(logEntry);
+                
+                setClickLog(prev => [...prev, logEntry]);
+                
+                // 显示alert确认点击事件
+                alert(`文章被点击！\nID: ${postId}\n时间: ${timestamp}`);
+            };
+            
+            if (loading) {
+                return (
+                    <div className="max-w-4xl mx-auto p-8">
+                        <div className="text-white text-center">
+                            <h1 className="text-3xl font-bold mb-4">Learning页面调试</h1>
+                            <p className="text-xl">正在加载文章数据...</p>
+                        </div>
+                    </div>
+                );
+            }
+            
+            if (error) {
+                return (
+                    <div className="max-w-4xl mx-auto p-8">
+                        <div className="text-white text-center">
+                            <h1 className="text-3xl font-bold mb-4">Learning页面调试</h1>
+                            <div className="bg-red-500/20 border border-red-500 rounded-lg p-4">
+                                <p className="text-red-300">❌ 加载失败: {error}</p>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+            
+            return (
+                <div className="max-w-6xl mx-auto p-8">
+                    <h1 className="text-3xl font-bold text-white mb-8 text-center">
+                        Learning页面点击事件调试
+                    </h1>
+                    
+                    {/* 调试信息面板 */}
+                    <div className="bg-blue-500/20 border border-blue-500 rounded-lg p-4 mb-6">
+                        <h3 className="text-blue-300 font-bold mb-2">调试信息：</h3>
+                        <div className="text-blue-200 text-sm space-y-1">
+                            <p>• 文章数量: {posts.length}</p>
+                            <p>• 存储类型: {blogManager.getStorageInfo().type}</p>
+                            <p>• 点击事件日志: {clickLog.length} 条</p>
+                        </div>
+                    </div>
+                    
+                    {/* 点击日志 */}
+                    {clickLog.length > 0 && (
+                        <div className="bg-green-500/20 border border-green-500 rounded-lg p-4 mb-6">
+                            <h3 className="text-green-300 font-bold mb-2">点击事件日志：</h3>
+                            <div className="text-green-200 text-sm space-y-1 max-h-32 overflow-y-auto">
+                                {clickLog.map((log, index) => (
+                                    <p key={index}>• {log}</p>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* 文章列表 */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {posts.length > 0 ? (
+                            posts.map((post, index) => (
+                                <DebugPostCard
+                                    key={post.id}
+                                    post={post}
+                                    index={index}
+                                    onClick={handlePostClick}
+                                />
+                            ))
+                        ) : (
+                            <div className="col-span-full text-center py-12">
+                                <div className="text-white/60 text-lg">
+                                    没有找到学习文章
+                                </div>
+                                <button 
+                                    onClick={loadPosts}
+                                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                                >
+                                    重新加载
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+        
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<DebugLearningApp />);
+    </script>
+</body>
+</html>

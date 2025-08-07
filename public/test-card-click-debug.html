@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostCard点击调试</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 min-h-screen">
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        function TestPostCard({ post, onClick }) {
+            console.log('TestPostCard rendered with post:', post);
+            
+            const handleClick = () => {
+                console.log('Card clicked! Post ID:', post.id);
+                if (onClick) {
+                    console.log('Calling onClick callback');
+                    onClick(post.id);
+                } else {
+                    console.log('No onClick callback provided');
+                }
+            };
+            
+            return (
+                <div 
+                    className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 transform hover:scale-105 cursor-pointer group"
+                    onClick={handleClick}
+                >
+                    <h3 className="text-xl font-bold text-white mb-3">
+                        {post.title}
+                    </h3>
+                    <p className="text-white/80 mb-4">
+                        {post.summary}
+                    </p>
+                    <div className="text-white/60 text-sm">
+                        点击测试 - ID: {post.id}
+                    </div>
+                </div>
+            );
+        }
+        
+        function TestApp() {
+            const [clickedId, setClickedId] = React.useState(null);
+            
+            const testPost = {
+                id: 'test-1',
+                title: '测试文章标题',
+                summary: '这是一个测试文章的摘要内容，用于测试点击事件是否正常工作。',
+                category: '学习'
+            };
+            
+            const handleCardClick = (postId) => {
+                console.log('handleCardClick called with ID:', postId);
+                setClickedId(postId);
+                alert(`卡片被点击了！文章ID: ${postId}`);
+            };
+            
+            return (
+                <div className="max-w-4xl mx-auto p-8">
+                    <h1 className="text-3xl font-bold text-white mb-8 text-center">
+                        PostCard 点击事件调试
+                    </h1>
+                    
+                    {clickedId && (
+                        <div className="bg-green-500/20 border border-green-500 rounded-lg p-4 mb-6">
+                            <p className="text-green-300">
+                                ✅ 点击事件成功！最后点击的文章ID: {clickedId}
+                            </p>
+                        </div>
+                    )}
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <TestPostCard 
+                            post={testPost} 
+                            onClick={handleCardClick}
+                        />
+                        <TestPostCard 
+                            post={{...testPost, id: 'test-2', title: '第二个测试文章'}} 
+                            onClick={handleCardClick}
+                        />
+                    </div>
+                    
+                    <div className="mt-8 bg-blue-500/20 border border-blue-500 rounded-lg p-4">
+                        <h3 className="text-blue-300 font-bold mb-2">调试信息：</h3>
+                        <ul className="text-blue-200 text-sm space-y-1">
+                            <li>• 打开浏览器开发者工具查看控制台日志</li>
+                            <li>• 点击卡片应该会触发alert弹窗</li>
+                            <li>• 成功点击后会显示绿色提示框</li>
+                        </ul>
+                    </div>
+                </div>
+            );
+        }
+        
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<TestApp />);
+    </script>
+</body>
+</html>
