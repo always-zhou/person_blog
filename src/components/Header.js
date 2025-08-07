@@ -25,10 +25,14 @@ function Header() {
             {/* Desktop Navigation */}
             <nav className="hidden md:flex space-x-8">
               {navItems.map((item, index) => (
-                <a
+                                <a
                   key={index}
                   href={item.href}
                   className="text-white/90 hover:text-white transition-colors duration-200 font-medium"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.location.href = item.href;
+                  }}
                 >
                   {item.name}
                 </a>
@@ -49,11 +53,15 @@ function Header() {
             <nav className="md:hidden mt-4 pb-4 border-t border-white/20">
               <div className="flex flex-col space-y-3 pt-4">
                 {navItems.map((item, index) => (
-                  <a
+                                    <a
                     key={index}
                     href={item.href}
                     className="text-white/90 hover:text-white transition-colors duration-200 font-medium py-2"
-                    onClick={() => setIsMenuOpen(false)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setIsMenuOpen(false);
+                      window.location.href = item.href;
+                    }}
                   >
                     {item.name}
                   </a>
