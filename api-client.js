@@ -13,8 +13,15 @@ class APIClient {
       return null;
     } else {
       // 生产环境，使用Cloudflare Workers API
-      // 替换为你的实际Workers域名
-      return 'https://your-worker-name.your-subdomain.workers.dev';
+      // 从环境变量获取Worker URL，如果没有则使用默认值
+      const workerURL = window.WORKER_URL || process.env.WORKER_URL;
+      if (workerURL) {
+        return workerURL;
+      }
+      
+      // 如果没有配置环境变量，尝试自动检测
+      // 假设Worker部署在相同的域名下的/api路径
+      return `${window.location.protocol}//${window.location.hostname}/api`;
     }
   }
 
