@@ -1,13 +1,12 @@
-# Clean URLs for main pages
-/about        /about.html        200
-/learning     /learning.html     200
-/fitness      /fitness.html      200
-/life         /life.html         200
-/photography  /photography.html  200
-/admin        /admin.html        200
+# Clean URL rewrites
+/learning /learning.html 200
+/fitness /fitness.html 200
+/life /life.html 200
+/photography /photography.html 200
+/about /about.html 200
 
-# Root page
-/             /index.html        200
+# Root path
+/ /index.html 200
 
 # 404 Fallback
-/*            /404.html          404
+/* /404.html 404
