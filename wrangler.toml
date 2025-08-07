@@ -6,9 +6,9 @@ compatibility_flags = ["nodejs_compat"]
 
 # KV 命名空间配置
 [[kv_namespaces]]
-binding = "BLOG_KV"
-preview_id = "your-preview-kv-namespace-id"
-id = "your-production-kv-namespace-id"
+binding = "my-blog-worker"
+preview_id = "91312a56-ed90-466a-929c-63ae7617f46b"
+id = "91312a56-ed90-466a-929c-63ae7617f46b"
 
 # 环境变量（如果需要）
 [vars]
