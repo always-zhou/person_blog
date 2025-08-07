@@ -1,10 +1,10 @@
 # 分类页面重定向 - 无后缀到.html文件
-/learning /public/learning.html 301
-/fitness /public/fitness.html 301
-/life /public/life.html 301
-/photography /public/photography.html 301
-/about /public/about.html 301
-/admin /public/admin.html 301
+/learning /public/learning.html 200
+/fitness /public/fitness.html 200
+/life /public/life.html 200
+/photography /public/photography.html 200
+/about /public/about.html 200
+/admin /public/admin.html 200
 
 # 调试页面重定向
 /debug /public/comprehensive-debug.html 200
