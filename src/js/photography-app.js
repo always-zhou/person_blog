@@ -188,7 +188,7 @@ function PhotographyApp() {
                     <PostCard
                       key={post.id}
                       post={post}
-                      onView={() => handleViewPost(post.id)}
+                      onClick={() => handleViewPost(post.id)}
                       onEdit={() => handleEditPost(post)}
                       onDelete={() => handleDeletePost(post.id)}
                       showActions={true}
