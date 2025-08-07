@@ -35,27 +35,22 @@ export default {
         return await handleAPI(request, env, path, method);
       }
 
-      // --- Precise Route Mapping ---
-      const routeMap = {
-        '/': '/index.html',
-        '/public/': '/index.html',
-        '/public/learning': '/learning.html',
-        '/public/fitness': '/fitness.html', 
-        '/public/life': '/life.html',
-        '/public/photography': '/photography.html',
-        '/public/about': '/about.html',
-        '/public/admin': '/admin.html'
-      };
-
+      // --- Route Handling Logic ---
       let targetPath = path;
       
-      // Check if this is a mapped route
-      if (routeMap[path]) {
-        targetPath = routeMap[path];
+      // Handle root paths
+      if (path === '/' || path === '/public/') {
+        targetPath = '/index.html';
       }
-      // If path doesn't have extension and isn't in routeMap, try adding .html
+      // Handle /public/page requests (keep URL as is, serve corresponding HTML)
+      else if (path.startsWith('/public/')) {
+        const page = path.substring('/public/'.length);
+        targetPath = `/${page}.html`;
+      }
+      // Redirect bare page names to /public/ URLs
       else if (!path.includes('.') && !path.startsWith('/api/')) {
-        targetPath = `${path}.html`;
+        const redirectUrl = new URL(`/public${path}`, request.url);
+        return Response.redirect(redirectUrl.toString(), 302);
       }
 
       // Create request for the target file
