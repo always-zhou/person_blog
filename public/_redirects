@@ -1,0 +1,22 @@
+# Redirect bare paths to /public/ paths
+/learning /public/learning 302
+/fitness /public/fitness 302
+/life /public/life 302
+/photography /public/photography 302
+/about /public/about 302
+/admin /public/admin 302
+
+# Handle /public/ paths by serving corresponding HTML files
+/public/learning /learning.html 200
+/public/fitness /fitness.html 200
+/public/life /life.html 200
+/public/photography /photography.html 200
+/public/about /about.html 200
+/public/admin /admin.html 200
+/public/ /index.html 200
+
+# Root path
+/ /index.html 200
+
+# 404 fallback
+/* /404.html 404
