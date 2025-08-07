@@ -1,12 +1,12 @@
 # 分类页面重定向 - 无后缀到.html文件
-/learning /public/learning.html 200
-/fitness /public/fitness.html 200
-/life /public/life.html 200
-/photography /public/photography.html 200
-/about /public/about.html 200
-/admin /public/admin.html 200
+/learning /pages/learning.html 200
+/fitness /pages/fitness.html 200
+/life /pages/life.html 200
+/photography /pages/photography.html 200
+/about /pages/about.html 200
+/admin /pages/admin.html 200
 
 # 调试页面重定向
-/debug /public/comprehensive-debug.html 200
-/test /public/test-api.html 200
-/sync-test /public/sync-test.html 200
+/debug /debug/comprehensive-debug.html 200
+/test /debug/test-api.html 200
+/sync-test /debug/sync-test.html 200

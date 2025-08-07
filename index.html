@@ -11,11 +11,12 @@
     <meta name="twitter:title" content="Always-zhou - 记录生活的每一刻">
     <meta name="twitter:description" content="Always-zhou的个人博客，记录学习、健身、生活和摄影的点点滴滴">
 
-    <script src="https://resource.trickle.so/vendor_lib/unpkg/react@18/umd/react.production.min.js"></script>
-    <script src="https://resource.trickle.so/vendor_lib/unpkg/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://resource.trickle.so/vendor_lib/unpkg/@babel/standalone/babel.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://resource.trickle.so/vendor_lib/unpkg/lucide-static@0.516.0/font/lucide.css" rel="stylesheet">
+    <link href="https://unpkg.com/lucide-static@0.516.0/font/lucide.css" rel="stylesheet">
 
     <style type="text/tailwindcss">
     @layer theme {
@@ -205,16 +206,18 @@
 <body>
     <div id="root"></div>
     <!-- 数据管理器脚本 -->
-    <script src="./src/js/config.js"></script>
-    <script type="text/babel" src="./src/js/blog-manager.js"></script>
-    <script type="text/babel" src="./src/js/cloudflare-kv-manager.js"></script>
-    <script type="text/babel" src="./src/js/blog-manager-kv.js"></script>
-    <script type="text/babel" src="./src/js/api-client.js"></script>
-    <script type="text/babel" src="./src/js/hybrid-blog-manager.js"></script>
-    <script type="text/babel" src="./src/components/Header.js"></script>
-    <script type="text/babel" src="./src/components/Hero.js"></script>
-    <script type="text/babel" src="./src/components/CategoryCard.js"></script>
-    <script type="text/babel" src="./src/components/Footer.js"></script>
-    <script type="text/babel" src="./src/js/app.js"></script>
+    <script src="../src/js/config.js"></script>
+    <script src="../src/js/cloudflare-kv-manager.js"></script>
+    <script src="../src/js/api-client.js"></script>
+    <script src="../src/js/blog-manager.js"></script>
+    <script src="../src/js/blog-manager-kv.js"></script>
+    <script src="../src/js/hybrid-blog-manager.js"></script>
+    
+    <!-- React 组件脚本 -->
+    <script type="text/babel" src="../src/components/Header.js"></script>
+    <script type="text/babel" src="../src/components/Hero.js"></script>
+    <script type="text/babel" src="../src/components/CategoryCard.js"></script>
+    <script type="text/babel" src="../src/components/Footer.js"></script>
+    <script type="text/babel" src="../src/js/app.js"></script>
 </body>
 </html>
