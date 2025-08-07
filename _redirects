@@ -1,3 +1,8 @@
+# 首页重定向
+/ index.html 200
+/index index.html 200
+/public/index.html index.html 200
+
 # 分类页面重定向 - 使用重写而不是重定向
 /learning public/learning.html 200
 /fitness public/fitness.html 200
