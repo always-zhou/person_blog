@@ -16,7 +16,7 @@ ENVIRONMENT = "production"
 
 # 路由配置（部署后配置）
 routes = [
-  { pattern = "awlayswm.com/api/*", zone_name = "awlayswm.com" }
+  { pattern = "awlayswm.com/api*", zone_name = "awlayswm.com" }
 ]
 
 # 开发环境配置
