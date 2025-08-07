@@ -18,8 +18,11 @@ function PostCard({ post, onClick, showActions = false, onEdit, onDelete }) {
   };
 
   return (
-    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 transform hover:scale-105 cursor-pointer group">
-      <div onClick={onClick}>
+    <div 
+      className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 transform hover:scale-105 cursor-pointer group"
+      onClick={onClick}
+    >
+      <div>
         {/* 分类标签 */}
         <div className="flex items-center justify-between mb-4">
           <span className={`px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r ${getCategoryColor(post.category)} text-white`}>
