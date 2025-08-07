@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学习记录测试 - Always-zhou</title>
+    <meta name="description" content="技术学习、知识分享、成长记录">
+    <meta name="keywords" content="学习记录,技术分享,知识总结,成长日记">
+    <meta property="og:title" content="学习记录 - Always-zhou">
+    <meta property="og:description" content="技术学习、知识分享、成长记录">
+    <meta name="twitter:title" content="学习记录 - Always-zhou">
+    <meta name="twitter:description" content="技术学习、知识分享、成长记录">
+
+    <script src="https://resource.trickle.so/vendor_lib/unpkg/react@18/umd/react.production.min.js"></script>
+    <script src="https://resource.trickle.so/vendor_lib/unpkg/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://resource.trickle.so/vendor_lib/unpkg/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://resource.trickle.so/vendor_lib/unpkg/lucide-static@0.516.0/font/lucide.css" rel="stylesheet">
+
+    <style type="text/tailwindcss">
+    @layer theme {
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #8b5cf6;
+        }
+    }
+
+    @layer base {
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            background: linear-gradient(45deg, #3b82f6, #1e40af, #8b5cf6, #6366f1);
+            background-size: 400% 400%;
+            animation: gradient-shift 8s ease infinite;
+        }
+        
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        // PostCard 组件
+        function PostCard({ post, onClick, showActions = false, onEdit, onDelete }) {
+          const formatDate = (dateString) => {
+            return new Date(dateString).toLocaleDateString('zh-CN', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            });
+          };
+
+          const getCategoryColor = (category) => {
+            const colors = {
+              '学习': 'from-blue-500 to-purple-600',
+              '健身': 'from-green-500 to-teal-600',
+              '生活': 'from-pink-500 to-rose-600',
+              '摄影': 'from-yellow-500 to-orange-600'
+            };
+            return colors[category] || 'from-gray-500 to-gray-600';
+          };
+
+          return (
+            <div 
+              className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 transform hover:scale-105 cursor-pointer group"
+              onClick={() => {
+                console.log('PostCard clicked!', post.title);
+                if (onClick) onClick();
+              }}
+            >
+              <div>
+                {/* 分类标签 */}
+                <div className="flex items-center justify-between mb-4">
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r ${getCategoryColor(post.category)} text-white`}>
+                    {post.category}
+                  </span>
+                  <span className="text-white/60 text-sm">{post.readTime}</span>
+                </div>
+
+                {/* 标题 */}
+                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-purple-300 transition-colors">
+                  {post.title}
+                </h3>
+
+                {/* 摘要 */}
+                <p className="text-white/80 mb-4 line-clamp-3">
+                  {post.excerpt}
+                </p>
+
+                {/* 日期和标签 */}
+                <div className="flex items-center justify-between text-sm text-white/60">
+                  <span>{formatDate(post.date)}</span>
+                  <div className="flex gap-2">
+                    {post.tags && post.tags.slice(0, 2).map(tag => (
+                      <span key={tag} className="px-2 py-1 bg-white/10 rounded-full text-xs">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* 管理操作按钮 */}
+              {showActions && (
+                <div className="flex gap-2 mt-4 pt-4 border-t border-white/20">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      console.log('Edit button clicked for:', post.title);
+                      if (onEdit) onEdit(post);
+                    }}
+                    className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+                  >
+                    编辑
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      console.log('Delete button clicked for:', post.title);
+                      if (confirm('确定要删除这篇文章吗？')) {
+                        if (onDelete) onDelete(post.id);
+                      }
+                    }}
+                    className="flex-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+                  >
+                    删除
+                  </button>
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        // Header 组件
+        function Header() {
+          return (
+            <header className="bg-white/10 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex justify-between items-center py-4">
+                  <div className="flex items-center space-x-4">
+                    <h1 className="text-2xl font-bold text-white">Always-zhou</h1>
+                  </div>
+                  <nav className="hidden md:flex space-x-8">
+                    <a href="/public/index.html" className="text-white/80 hover:text-white transition-colors">首页</a>
+                    <a href="/public/learning.html" className="text-white font-semibold">学习</a>
+                    <a href="/public/fitness.html" className="text-white/80 hover:text-white transition-colors">健身</a>
+                    <a href="/public/life.html" className="text-white/80 hover:text-white transition-colors">生活</a>
+                    <a href="/public/photography.html" className="text-white/80 hover:text-white transition-colors">摄影</a>
+                    <a href="/public/about.html" className="text-white/80 hover:text-white transition-colors">关于</a>
+                  </nav>
+                </div>
+              </div>
+            </header>
+          );
+        }
+
+        // Footer 组件
+        function Footer() {
+          return (
+            <footer className="bg-white/5 backdrop-blur-md border-t border-white/20 mt-16">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="text-center text-white/60">
+                  <p>&copy; 2025 Always-zhou. All rights reserved.</p>
+                </div>
+              </div>
+            </footer>
+          );
+        }
+
+        // 主应用组件
+        function TestLearningApp() {
+          const [selectedPostId, setSelectedPostId] = React.useState(null);
+          const [currentView, setCurrentView] = React.useState('list');
+          
+          // 测试数据
+          const testPosts = [
+            {
+              id: 1,
+              title: 'React Hooks 深入理解',
+              excerpt: '深入探讨React Hooks的工作原理，包括useState、useEffect等核心Hook的使用方法和最佳实践。',
+              category: '学习',
+              date: '2025-08-07',
+              readTime: '8分钟',
+              tags: ['React', 'JavaScript', 'Frontend']
+            },
+            {
+              id: 2,
+              title: 'TypeScript 进阶技巧',
+              excerpt: 'TypeScript的高级类型系统、泛型编程以及在大型项目中的应用实践。',
+              category: '学习',
+              date: '2025-08-06',
+              readTime: '12分钟',
+              tags: ['TypeScript', 'JavaScript']
+            },
+            {
+              id: 3,
+              title: 'CSS Grid 布局完全指南',
+              excerpt: '从基础到高级，全面掌握CSS Grid布局系统，创建复杂而灵活的网页布局。',
+              category: '学习',
+              date: '2025-08-05',
+              readTime: '15分钟',
+              tags: ['CSS', 'Layout', 'Frontend']
+            }
+          ];
+
+          const handleViewPost = (postId) => {
+            console.log('Viewing post:', postId);
+            setSelectedPostId(postId);
+            setCurrentView('detail');
+            alert(`正在查看文章 ID: ${postId}`);
+          };
+
+          const handleEditPost = (post) => {
+            console.log('Editing post:', post);
+            alert(`编辑文章: ${post.title}`);
+          };
+
+          const handleDeletePost = (postId) => {
+            console.log('Deleting post:', postId);
+            alert(`删除文章 ID: ${postId}`);
+          };
+
+          return (
+            <div className="min-h-screen">
+              <Header />
+              
+              <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <div className="mb-8">
+                  {/* 标题和说明 */}
+                  <div className="text-center mb-8">
+                    <h2 className="text-3xl font-bold text-white mb-4">学习文章测试页面</h2>
+                    <p className="text-white/80 mb-4">测试PostCard组件的点击功能</p>
+                    <div className="bg-white/10 backdrop-blur-md rounded-lg p-4 text-white/70 text-sm">
+                      <p>• 点击任意文章卡片应该弹出查看提示</p>
+                      <p>• 点击编辑按钮应该弹出编辑提示</p>
+                      <p>• 点击删除按钮应该弹出删除确认</p>
+                      <p>• 查看浏览器控制台获取详细日志</p>
+                    </div>
+                  </div>
+
+                  {/* 文章列表 */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {testPosts.map(post => (
+                      <PostCard
+                        key={post.id}
+                        post={post}
+                        onClick={() => handleViewPost(post.id)}
+                        onEdit={() => handleEditPost(post)}
+                        onDelete={() => handleDeletePost(post.id)}
+                        showActions={true}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </main>
+
+              <Footer />
+            </div>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<TestLearningApp />);
+    </script>
+</body>
+</html>
