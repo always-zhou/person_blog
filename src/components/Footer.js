@@ -14,10 +14,10 @@ function Footer() {
             <div>
               <h3 className="text-xl font-bold text-white mb-4">快速导航</h3>
               <div className="space-y-2">
-                <a href="learning.html" className="block text-white/70 hover:text-white transition-colors">学习记录</a>
-                <a href="fitness.html" className="block text-white/70 hover:text-white transition-colors">健身日志</a>
-                <a href="life.html" className="block text-white/70 hover:text-white transition-colors">生活分享</a>
-                <a href="photography.html" className="block text-white/70 hover:text-white transition-colors">摄影作品</a>
+                <a href="/learning" className="block text-white/70 hover:text-white transition-colors">学习记录</a>
+                <a href="/fitness" className="block text-white/70 hover:text-white transition-colors">健身日志</a>
+                <a href="/life" className="block text-white/70 hover:text-white transition-colors">生活分享</a>
+                <a href="/photography" className="block text-white/70 hover:text-white transition-colors">摄影作品</a>
               </div>
             </div>
             

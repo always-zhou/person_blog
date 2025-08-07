@@ -38,7 +38,7 @@ function Hero() {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="about.html"
+              href="/about"
               className="px-8 py-4 bg-white text-purple-600 rounded-full font-semibold hover:bg-white/90 transition-all duration-300 transform hover:scale-105"
             >
               了解更多
