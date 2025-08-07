@@ -36,11 +36,8 @@ export default {
         return await handleAPI(request, env, path, method);
       }
       
-      // 静态文件服务（如果需要）
-      // For SPA, always return index.html for non-API routes
-      return new Response(env.ASSETS.fetch(request).body, {
-        headers: { 'Content-Type': 'text/html' },
-      });
+            // 静态文件服务
+      return env.ASSETS.fetch(request);
       
     } catch (error) {
       console.error('Worker error:', error);

@@ -1,16 +1,7 @@
-# 首页重定向
-# / /index.html 200
-
-# 分类页面重写
+/ /index.html 200
 /learning /public/learning.html 200
 /fitness /public/fitness.html 200
 /life /public/life.html 200
 /photography /public/photography.html 200
 /about /public/about.html 200
 /admin /public/admin.html 200
-
-# SPA fallback
-/* /index.html 200
-
-# SPA 回退
-/* /index.html 200
