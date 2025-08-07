@@ -35,8 +35,23 @@ export default {
         return await handleAPI(request, env, path, method);
       }
 
-      // For all other requests, fallback to the static asset server, 
-      // which respects the _redirects file for routing.
+      // Manual rewrite logic to handle clean URLs
+      const rewrites = {
+        '/learning': '/learning.html',
+        '/fitness': '/fitness.html',
+        '/life': '/life.html',
+        '/photography': '/photography.html',
+        '/about': '/about.html',
+        '/': '/index.html'
+      };
+
+      if (rewrites[path]) {
+        const newUrl = new URL(rewrites[path], request.url);
+        const newRequest = new Request(newUrl, request);
+        return env.ASSETS.fetch(newRequest);
+      }
+
+      // Fallback for other static assets (like CSS, images) and 404
       return env.ASSETS.fetch(request);
     } catch (error) {
       console.error('Worker error:', error);
