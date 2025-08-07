@@ -1,10 +1,10 @@
 # 分类页面重定向
-/learning pages/learning.html 301
-/fitness pages/fitness.html 301
-/life pages/life.html 301
-/photography pages/photography.html 301
-/about pages/about.html 301
-/admin pages/admin.html 301
+/learning public/learning.html 301
+/fitness public/fitness.html 301
+/life public/life.html 301
+/photography public/photography.html 301
+/about public/about.html 301
+/admin public/admin.html 301
 
 # 调试页面重定向
 /debug debug/comprehensive-debug.html 301
