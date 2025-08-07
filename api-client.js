@@ -18,12 +18,8 @@ class APIClient {
       return workerURL;
     }
     
-    // 如果在生产环境且没有配置，尝试自动检测
-    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-      return `${window.location.protocol}//${window.location.hostname}/api`;
-    }
-    
-    // 本地环境且没有配置Worker URL时，回退到本地存储
+    // 无论在什么环境，如果没有配置Worker URL，都回退到本地存储
+    // 这确保了PC端和移动端的一致性
     console.warn('No WORKER_URL configured, falling back to localStorage');
     return null;
   }

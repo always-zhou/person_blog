@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据同步测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        .warning { background-color: #fff3cd; color: #856404; }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .device-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        @media (max-width: 600px) {
+            .device-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>📱💻 数据同步测试工具</h1>
+    
+    <div class="test-container">
+        <h2>设备信息</h2>
+        <div class="device-info">
+            <div>
+                <strong>当前设备:</strong>
+                <div id="device-info"></div>
+            </div>
+            <div>
+                <strong>网络信息:</strong>
+                <div id="network-info"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h2>存储状态检查</h2>
+        <button onclick="checkStorageStatus()">检查存储状态</button>
+        <button onclick="testDataSync()">测试数据同步</button>
+        <div id="storage-status"></div>
+    </div>
+    
+    <div class="test-container">
+        <h2>数据对比</h2>
+        <button onclick="compareData()">对比本地与云端数据</button>
+        <div id="data-comparison"></div>
+    </div>
+    
+    <div class="test-container">
+        <h2>同步操作</h2>
+        <button onclick="forceUseKV()">强制使用KV存储</button>
+        <button onclick="forceUseLocal()">强制使用本地存储</button>
+        <button onclick="syncLocalToKV()">同步本地数据到KV</button>
+        <button onclick="syncKVToLocal()">同步KV数据到本地</button>
+        <div id="sync-results"></div>
+    </div>
+
+    <!-- 引入必要的脚本 -->
+    <script src="config.js"></script>
+    <script src="blog-manager.js"></script>
+    <script src="cloudflare-kv-manager.js"></script>
+    <script src="blog-manager-kv.js"></script>
+    <script src="api-client.js"></script>
+    <script src="hybrid-blog-manager.js"></script>
+    
+    <script>
+        let hybridManager;
+        let localManager;
+        let kvManager;
+        
+        // 页面加载时显示设备信息
+        window.addEventListener('DOMContentLoaded', function() {
+            displayDeviceInfo();
+            initializeManagers();
+        });
+        
+        function displayDeviceInfo() {
+            const deviceDiv = document.getElementById('device-info');
+            const networkDiv = document.getElementById('network-info');
+            
+            // 检测设备类型
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            const isTablet = /iPad|Android/i.test(navigator.userAgent) && window.innerWidth > 600;
+            
+            deviceDiv.innerHTML = `
+                类型: ${isMobile ? (isTablet ? '平板' : '手机') : '电脑'}<br>
+                用户代理: ${navigator.userAgent.substring(0, 50)}...<br>
+                屏幕: ${window.innerWidth}x${window.innerHeight}
+            `;
+            
+            networkDiv.innerHTML = `
+                域名: ${window.location.hostname}<br>
+                协议: ${window.location.protocol}<br>
+                端口: ${window.location.port || '默认'}<br>
+                完整URL: ${window.location.href}
+            `;
+        }
+        
+        async function initializeManagers() {
+            try {
+                hybridManager = new HybridBlogManager();
+                localManager = new BlogManager();
+                kvManager = new BlogManagerKV();
+                
+                await hybridManager.initialize();
+                await kvManager.initialize();
+                
+                console.log('管理器初始化完成');
+            } catch (error) {
+                console.error('初始化管理器失败:', error);
+            }
+        }
+        
+        async function checkStorageStatus() {
+            const statusDiv = document.getElementById('storage-status');
+            statusDiv.innerHTML = '<div class="info">正在检查存储状态...</div>';
+            
+            try {
+                const storageInfo = hybridManager.getStorageInfo();
+                const apiClient = new APIClient();
+                const apiInfo = apiClient.getAPIInfo();
+                
+                let statusClass = 'info';
+                let statusText = '';
+                
+                if (storageInfo.type.includes('KV')) {
+                    statusClass = 'success';
+                    statusText = '✅ 使用云端KV存储 - 数据会同步';
+                } else {
+                    statusClass = 'warning';
+                    statusText = '⚠️ 使用本地存储 - 数据不会同步';
+                }
+                
+                statusDiv.innerHTML = `
+                    <div class="${statusClass}">
+                        ${statusText}<br><br>
+                        <strong>详细信息:</strong><br>
+                        存储类型: ${storageInfo.type}<br>
+                        初始化状态: ${storageInfo.initialized ? '已初始化' : '未初始化'}<br>
+                        API基础URL: ${apiInfo.baseURL || '未配置'}<br>
+                        环境: ${apiInfo.environment}
+                    </div>
+                `;
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="error">检查失败: ${error.message}</div>`;
+            }
+        }
+        
+        async function testDataSync() {
+            const statusDiv = document.getElementById('storage-status');
+            statusDiv.innerHTML = '<div class="info">正在测试数据同步...</div>';
+            
+            try {
+                // 创建一个测试文章
+                const testPost = {
+                    title: `同步测试 - ${new Date().toLocaleString()}`,
+                    content: `这是一篇用于测试数据同步的文章，创建时间：${new Date().toISOString()}`,
+                    summary: '同步测试文章',
+                    category: '测试',
+                    tags: ['同步测试', '设备测试']
+                };
+                
+                const result = await hybridManager.addPost(testPost);
+                
+                statusDiv.innerHTML = `
+                    <div class="success">
+                        ✅ 测试文章创建成功！<br>
+                        文章ID: ${result.id}<br>
+                        存储方式: ${hybridManager.getStorageInfo().type}
+                    </div>
+                `;
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="error">测试失败: ${error.message}</div>`;
+            }
+        }
+        
+        async function compareData() {
+            const comparisonDiv = document.getElementById('data-comparison');
+            comparisonDiv.innerHTML = '<div class="info">正在对比数据...</div>';
+            
+            try {
+                // 获取本地数据
+                const localPosts = localManager.getPosts();
+                
+                // 获取KV数据
+                let kvPosts = [];
+                try {
+                    const apiClient = new APIClient();
+                    const response = await apiClient.getPosts();
+                    kvPosts = response.posts || [];
+                } catch (error) {
+                    console.warn('无法获取KV数据:', error);
+                }
+                
+                comparisonDiv.innerHTML = `
+                    <div class="info">
+                        <strong>数据对比结果:</strong><br>
+                        本地存储文章数: ${localPosts.length}<br>
+                        云端KV文章数: ${kvPosts.length}<br><br>
+                        
+                        <strong>本地文章列表:</strong>
+                        <pre>${JSON.stringify(localPosts.map(p => ({id: p.id, title: p.title, createdAt: p.createdAt})), null, 2)}</pre>
+                        
+                        <strong>云端文章列表:</strong>
+                        <pre>${JSON.stringify(kvPosts.map(p => ({id: p.id, title: p.title, createdAt: p.createdAt})), null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                comparisonDiv.innerHTML = `<div class="error">对比失败: ${error.message}</div>`;
+            }
+        }
+        
+        async function forceUseKV() {
+            const resultsDiv = document.getElementById('sync-results');
+            resultsDiv.innerHTML = '<div class="info">正在强制切换到KV存储...</div>';
+            
+            try {
+                hybridManager.useAPI = true;
+                await hybridManager.kvManager.initialize();
+                
+                resultsDiv.innerHTML = '<div class="success">✅ 已强制切换到KV存储模式</div>';
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">切换失败: ${error.message}</div>`;
+            }
+        }
+        
+        async function forceUseLocal() {
+            const resultsDiv = document.getElementById('sync-results');
+            resultsDiv.innerHTML = '<div class="info">正在强制切换到本地存储...</div>';
+            
+            hybridManager.useAPI = false;
+            resultsDiv.innerHTML = '<div class="success">✅ 已强制切换到本地存储模式</div>';
+        }
+        
+        async function syncLocalToKV() {
+            const resultsDiv = document.getElementById('sync-results');
+            resultsDiv.innerHTML = '<div class="info">正在同步本地数据到KV...</div>';
+            
+            try {
+                const localPosts = localManager.getPosts();
+                const apiClient = new APIClient();
+                
+                let successCount = 0;
+                for (const post of localPosts) {
+                    try {
+                        await apiClient.createPost(post);
+                        successCount++;
+                    } catch (error) {
+                        console.warn('同步文章失败:', post.title, error);
+                    }
+                }
+                
+                resultsDiv.innerHTML = `
+                    <div class="success">
+                        ✅ 同步完成！<br>
+                        成功同步 ${successCount}/${localPosts.length} 篇文章
+                    </div>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">同步失败: ${error.message}</div>`;
+            }
+        }
+        
+        async function syncKVToLocal() {
+            const resultsDiv = document.getElementById('sync-results');
+            resultsDiv.innerHTML = '<div class="info">正在同步KV数据到本地...</div>';
+            
+            try {
+                const apiClient = new APIClient();
+                const response = await apiClient.getPosts();
+                const kvPosts = response.posts || [];
+                
+                // 清空本地数据
+                localStorage.removeItem('blogPosts');
+                
+                // 添加KV数据到本地
+                for (const post of kvPosts) {
+                    localManager.addPost(post);
+                }
+                
+                resultsDiv.innerHTML = `
+                    <div class="success">
+                        ✅ 同步完成！<br>
+                        成功同步 ${kvPosts.length} 篇文章到本地存储
+                    </div>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">同步失败: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
