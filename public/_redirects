@@ -1,12 +1,11 @@
-# Clean URL rewrites
-/learning /learning.html 200
-/fitness /fitness.html 200
-/life /life.html 200
-/photography /photography.html 200
-/about /about.html 200
+# Rewrite clean URLs under /public/ to their .html versions
+/public/:page /public/:page.html 200
 
-# Root path
-/ /index.html 200
+# Handle the root of the public directory
+/public/ /public/index.html 200
 
-# 404 Fallback
-/* /404.html 404
+# Rewrite the site root to the main index page in /public/
+/ /public/index.html 200
+
+# Fallback for any other path
+/* /public/404.html 404
