@@ -41,7 +41,7 @@ function App() {
         description: "技术学习、读书笔记、知识总结",
         icon: "book-open",
         color: "from-blue-500 to-purple-600",
-        page: "/public/learning"
+        page: "/learning"
 
       },
       {
@@ -49,7 +49,7 @@ function App() {
         description: "运动日志、健身计划、身体变化",
         icon: "dumbbell",
         color: "from-green-500 to-teal-600",
-        page: "/public/fitness"
+        page: "/fitness"
 
       },
       {
@@ -57,7 +57,7 @@ function App() {
         description: "日常生活、心情随笔、生活感悟",
         icon: "heart",
         color: "from-pink-500 to-rose-600",
-        page: "public/life"
+        page: "/life"
       },
       {
         title: "摄影作品",
