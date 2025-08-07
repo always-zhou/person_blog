@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文章详情调试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .debug-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .result.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <h1>文章详情功能调试</h1>
+        
+        <div>
+            <button class="test-button" onclick="testLocalStorage()">测试localStorage</button>
+            <button class="test-button" onclick="testBlogManager()">测试BlogManager</button>
+            <button class="test-button" onclick="testGetPost()">测试getPost方法</button>
+        </div>
+        
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // 简单的BlogManager类用于测试
+        class SimpleBlogManager {
+            constructor() {
+                this.posts = JSON.parse(localStorage.getItem('blogPosts')) || this.getDefaultPosts();
+            }
+            
+            getDefaultPosts() {
+                return [
+                    {
+                        id: 1,
+                        title: "React 18 新特性深度解析",
+                        category: "学习",
+                        content: "React 18 带来了许多令人兴奋的新特性，包括并发渲染、自动批处理、新的 Suspense 功能等。\n\n## 并发渲染\n\n并发渲染是 React 18 最重要的特性之一。它允许 React 在渲染过程中暂停和恢复工作，从而提供更好的用户体验。\n\n## 自动批处理\n\n在 React 18 中，所有的状态更新都会自动批处理，无论它们发生在哪里。这意味着更少的重新渲染和更好的性能。\n\n## 新的 Suspense 功能\n\nSuspense 现在支持服务端渲染，并且可以与并发特性完美配合。",
+                        summary: "深入了解React 18的并发特性、Suspense改进和新的Hooks",
+                        tags: ["React", "JavaScript", "前端"],
+                        readTime: "8分钟",
+                        createdAt: "2024-01-15T10:00:00.000Z",
+                        updatedAt: "2024-01-15T10:00:00.000Z"
+                    },
+                    {
+                        id: 2,
+                        title: "我的健身之路：从零基础到马拉松",
+                        category: "健身",
+                        content: "回想起两年前的自己，完全是一个运动小白。那时候爬三层楼梯都会气喘吁吁，更别说跑步了。\n\n## 起步阶段\n\n最开始我只是想减肥，每天晚上在小区里慢走30分钟。虽然很简单，但坚持下来确实有效果。\n\n## 进阶训练\n\n随着体能的提升，我开始尝试慢跑。从最初的跑5分钟就累得不行，到后来能够连续跑30分钟，这个过程充满了挑战和成就感。\n\n## 马拉松挑战\n\n经过一年半的训练，我终于完成了人生第一个马拉松。那种冲过终点线的感觉，至今难忘。",
+                        summary: "记录从运动小白到完成马拉松的成长历程，分享训练心得和体会",
+                        tags: ["跑步", "马拉松", "健身", "成长"],
+                        readTime: "6分钟",
+                        createdAt: "2024-01-14T09:30:00.000Z",
+                        updatedAt: "2024-01-14T09:30:00.000Z"
+                    }
+                ];
+            }
+            
+            getPosts() {
+                return this.posts;
+            }
+            
+            getPost(id) {
+                console.log('查找文章ID:', id, '类型:', typeof id);
+                console.log('可用文章:', this.posts.map(p => ({id: p.id, type: typeof p.id, title: p.title})));
+                
+                // 尝试多种匹配方式
+                let post = this.posts.find(post => post.id === id);
+                if (post) {
+                    console.log('直接匹配成功');
+                    return post;
+                }
+                
+                post = this.posts.find(post => String(post.id) === String(id));
+                if (post) {
+                    console.log('字符串匹配成功');
+                    return post;
+                }
+                
+                post = this.posts.find(post => parseInt(post.id) === parseInt(id));
+                if (post) {
+                    console.log('数字匹配成功');
+                    return post;
+                }
+                
+                console.log('所有匹配方式都失败');
+                return null;
+            }
+        }
+        
+        const blogManager = new SimpleBlogManager();
+        
+        function testLocalStorage() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = '正在测试localStorage...';
+            
+            try {
+                const data = localStorage.getItem('blogPosts');
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `localStorage数据:\n\n${data || '无数据'}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `localStorage测试失败: ${error.message}`;
+            }
+        }
+        
+        function testBlogManager() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = '正在测试BlogManager...';
+            
+            try {
+                const posts = blogManager.getPosts();
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `BlogManager测试成功:\n\n文章数量: ${posts.length}\n\n文章列表:\n${JSON.stringify(posts.map(p => ({id: p.id, title: p.title, category: p.category})), null, 2)}`;
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `BlogManager测试失败: ${error.message}\n\n${error.stack}`;
+            }
+        }
+        
+        function testGetPost() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = '正在测试getPost方法...';
+            
+            try {
+                const posts = blogManager.getPosts();
+                
+                if (posts.length === 0) {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = '没有文章可供测试';
+                    return;
+                }
+                
+                const testPost = posts[0];
+                console.log('开始测试getPost，文章ID:', testPost.id);
+                
+                const retrievedPost = blogManager.getPost(testPost.id);
+                
+                if (retrievedPost) {
+                    resultDiv.className = 'result success';
+                    resultDiv.textContent = `getPost测试成功:\n\n原始文章ID: ${testPost.id} (${typeof testPost.id})\n获取到的文章:\n- 标题: ${retrievedPost.title}\n- 分类: ${retrievedPost.category}\n- 内容长度: ${retrievedPost.content.length}字符\n\n内容预览:\n${retrievedPost.content.substring(0, 200)}...`;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = `getPost测试失败:\n\n测试的文章ID: ${testPost.id} (${typeof testPost.id})\n文章标题: ${testPost.title}\n\n请检查控制台日志获取更多信息`;
+                }
+                
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `getPost测试失败: ${error.message}\n\n${error.stack}`;
+            }
+        }
+        
+        // 页面加载时显示基本信息
+        window.addEventListener('load', () => {
+            console.log('页面加载完成，开始初始化测试');
+            testBlogManager();
+        });
+    </script>
+</body>
+</html>

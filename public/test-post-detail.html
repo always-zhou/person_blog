@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试文章详情功能</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        // 简化的博客管理器
+        class TestBlogManager {
+            constructor() {
+                this.posts = [
+                    {
+                        id: 1,
+                        title: "测试文章标题",
+                        content: "这是一篇测试文章的内容。\n\n这里有多行内容来测试文章详情页面的显示效果。\n\n包含换行符和格式化文本。",
+                        category: "学习",
+                        tags: ["测试", "React"],
+                        publishDate: "2024-01-15",
+                        updateDate: "2024-01-16"
+                    },
+                    {
+                        id: 2,
+                        title: "另一篇测试文章",
+                        content: "这是第二篇测试文章的内容。\n\n用于测试文章列表和详情切换功能。",
+                        category: "生活",
+                        tags: ["生活", "随笔"],
+                        publishDate: "2024-01-10",
+                        updateDate: "2024-01-10"
+                    }
+                ];
+            }
+            
+            async getPosts() {
+                return this.posts;
+            }
+            
+            async getPost(id) {
+                const post = this.posts.find(p => p.id === parseInt(id));
+                console.log('获取文章:', id, post);
+                return post;
+            }
+        }
+        
+        // 简化的PostDetail组件
+        const PostDetail = ({ postId, onBack }) => {
+            const [post, setPost] = React.useState(null);
+            const [loading, setLoading] = React.useState(true);
+            
+            React.useEffect(() => {
+                const loadPost = async () => {
+                    console.log('加载文章ID:', postId);
+                    setLoading(true);
+                    try {
+                        const manager = new TestBlogManager();
+                        const postData = await manager.getPost(postId);
+                        console.log('获取到的文章数据:', postData);
+                        setPost(postData);
+                    } catch (error) {
+                        console.error('加载文章失败:', error);
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+                
+                if (postId) {
+                    loadPost();
+                }
+            }, [postId]);
+            
+            if (loading) {
+                return (
+                    <div className="flex justify-center items-center min-h-screen">
+                        <div className="text-lg">加载中...</div>
+                    </div>
+                );
+            }
+            
+            if (!post) {
+                return (
+                    <div className="container mx-auto px-4 py-8">
+                        <button 
+                            onClick={onBack}
+                            className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        >
+                            返回列表
+                        </button>
+                        <div className="text-center text-gray-500">文章不存在</div>
+                    </div>
+                );
+            }
+            
+            return (
+                <div className="container mx-auto px-4 py-8">
+                    <button 
+                        onClick={onBack}
+                        className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                    >
+                        返回列表
+                    </button>
+                    
+                    <article className="bg-white rounded-lg shadow-md p-6">
+                        <div className="mb-4">
+                            <span className="inline-block bg-blue-100 text-blue-800 text-sm px-2 py-1 rounded">
+                                {post.category}
+                            </span>
+                        </div>
+                        
+                        <h1 className="text-3xl font-bold mb-4">{post.title}</h1>
+                        
+                        <div className="text-gray-600 mb-4">
+                            <p>发布时间: {post.publishDate}</p>
+                            {post.updateDate !== post.publishDate && (
+                                <p>更新时间: {post.updateDate}</p>
+                            )}
+                        </div>
+                        
+                        <div className="mb-6">
+                            {post.tags.map((tag, index) => (
+                                <span key={index} className="inline-block bg-gray-200 text-gray-700 text-sm px-2 py-1 rounded mr-2">
+                                    #{tag}
+                                </span>
+                            ))}
+                        </div>
+                        
+                        <div className="prose max-w-none">
+                            <div style={{whiteSpace: 'pre-wrap'}}>
+                                {post.content}
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            );
+        };
+        
+        // 主应用组件
+        const TestApp = () => {
+            const [currentView, setCurrentView] = React.useState('list');
+            const [selectedPostId, setSelectedPostId] = React.useState(null);
+            const [posts, setPosts] = React.useState([]);
+            
+            React.useEffect(() => {
+                const loadPosts = async () => {
+                    const manager = new TestBlogManager();
+                    const postsData = await manager.getPosts();
+                    setPosts(postsData);
+                };
+                loadPosts();
+            }, []);
+            
+            const handleViewPost = (postId) => {
+                console.log('查看文章:', postId);
+                setSelectedPostId(postId);
+                setCurrentView('detail');
+            };
+            
+            const handleBackToList = () => {
+                setCurrentView('list');
+                setSelectedPostId(null);
+            };
+            
+            if (currentView === 'detail') {
+                return (
+                    <PostDetail 
+                        postId={selectedPostId} 
+                        onBack={handleBackToList}
+                    />
+                );
+            }
+            
+            return (
+                <div className="container mx-auto px-4 py-8">
+                    <h1 className="text-3xl font-bold mb-8">文章列表测试</h1>
+                    
+                    <div className="grid gap-6">
+                        {posts.map(post => (
+                            <div key={post.id} className="bg-white rounded-lg shadow-md p-6">
+                                <h2 className="text-xl font-bold mb-2">{post.title}</h2>
+                                <p className="text-gray-600 mb-4">{post.content.substring(0, 100)}...</p>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-500">{post.publishDate}</span>
+                                    <button 
+                                        onClick={() => handleViewPost(post.id)}
+                                        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                    >
+                                        查看详情
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+        
+        // 渲染应用
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<TestApp />);
+    </script>
+</body>
+</html>

@@ -12,8 +12,8 @@ class APIClient {
       return window.CONFIG.WORKER_URL;
     }
     
-    // 从环境变量获取Worker URL
-    const workerURL = window.WORKER_URL || process.env.WORKER_URL;
+    // 从全局变量获取Worker URL
+    const workerURL = window.WORKER_URL;
     if (workerURL) {
       return workerURL;
     }
