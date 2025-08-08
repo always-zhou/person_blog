@@ -20,7 +20,13 @@ function PostDetail({ postId, onBack, onEdit, onDelete }) {
 
   // 思维导图查看器组件
   const MindMapViewer = ({ data }) => {
-    if (!data || !data.nodes || data.nodes.length === 0) {
+    const markmapRef = React.useRef(null);
+    
+    // 检查数据格式
+    const hasMarkdownData = data && data.markdown && data.markdown.trim();
+    const hasNodesData = data && data.nodes && data.nodes.length > 0;
+    
+    if (!hasMarkdownData && !hasNodesData) {
       return (
         <div className="text-center py-8 text-white/60">
           暂无思维导图内容
@@ -28,6 +34,120 @@ function PostDetail({ postId, onBack, onEdit, onDelete }) {
       );
     }
 
+    // 渲染思维导图预览
+    React.useEffect(() => {
+      if (hasMarkdownData && markmapRef.current) {
+        // 清空之前的内容
+        markmapRef.current.innerHTML = '';
+        
+        // 创建 SVG 元素
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.style.width = '100%';
+        svg.style.height = '400px';
+        markmapRef.current.appendChild(svg);
+        
+        // 渲染思维导图
+        renderMindMapFromMarkdown(svg, data.markdown);
+      }
+    }, [data, hasMarkdownData]);
+    
+    // 从 Markdown 渲染思维导图
+    const renderMindMapFromMarkdown = (svg, markdown) => {
+      const lines = markdown.split('\n').filter(line => line.trim());
+      const nodes = [];
+      
+      lines.forEach((line, index) => {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('#')) {
+          const level = (trimmed.match(/^#+/) || [''])[0].length;
+          const text = trimmed.replace(/^#+\s*/, '');
+          nodes.push({ level, text, index, x: 0, y: 0 });
+        } else if (trimmed.startsWith('-')) {
+          const level = Math.max(1, (line.match(/^\s*/) || [''])[0].length / 2) + 1;
+          const text = trimmed.replace(/^-\s*/, '');
+          nodes.push({ level, text, index, x: 0, y: 0 });
+        }
+      });
+      
+      // 计算节点位置
+      const centerX = 300;
+      const centerY = 200;
+      const levelDistance = 120;
+      
+      nodes.forEach((node, i) => {
+        if (node.level === 1) {
+          node.x = centerX;
+          node.y = centerY;
+        } else {
+          const angle = (i / nodes.length) * 2 * Math.PI;
+          node.x = centerX + Math.cos(angle) * levelDistance * (node.level - 1);
+          node.y = centerY + Math.sin(angle) * levelDistance * (node.level - 1);
+        }
+      });
+      
+      // 绘制连接线
+      nodes.forEach((node, i) => {
+        if (node.level > 1) {
+          const parent = nodes.find(n => n.level === node.level - 1);
+          if (parent) {
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', parent.x);
+            line.setAttribute('y1', parent.y);
+            line.setAttribute('x2', node.x);
+            line.setAttribute('y2', node.y);
+            line.setAttribute('stroke', '#60a5fa');
+            line.setAttribute('stroke-width', '2');
+            svg.appendChild(line);
+          }
+        }
+      });
+      
+      // 绘制节点
+      nodes.forEach(node => {
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        const textWidth = node.text.length * 8 + 20;
+        rect.setAttribute('x', node.x - textWidth / 2);
+        rect.setAttribute('y', node.y - 15);
+        rect.setAttribute('width', textWidth);
+        rect.setAttribute('height', 30);
+        rect.setAttribute('rx', 15);
+        rect.setAttribute('fill', node.level === 1 ? '#3b82f6' : 'rgba(255,255,255,0.1)');
+        rect.setAttribute('stroke', '#60a5fa');
+        rect.setAttribute('stroke-width', '2');
+        
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', node.x);
+        text.setAttribute('y', node.y + 5);
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('fill', node.level === 1 ? 'white' : '#e5e7eb');
+        text.setAttribute('font-size', '12');
+        text.setAttribute('font-weight', node.level === 1 ? 'bold' : 'normal');
+        text.textContent = node.text;
+        
+        g.appendChild(rect);
+        g.appendChild(text);
+        svg.appendChild(g);
+      });
+    };
+
+    // 如果是新的 markdown 格式
+    if (hasMarkdownData) {
+      return (
+        <div className="mind-map-viewer bg-white/5 rounded-lg p-6">
+          <div className="text-center mb-6">
+            <h3 className="text-xl font-semibold text-white mb-2">思维导图</h3>
+          </div>
+          <div 
+            ref={markmapRef}
+            className="w-full h-96 bg-white/10 rounded-lg overflow-hidden"
+          />
+        </div>
+      );
+    }
+    
+    // 兼容旧的 nodes 格式
     return (
       <div className="mind-map-viewer bg-white/5 rounded-lg p-6">
         <div className="text-center mb-6">

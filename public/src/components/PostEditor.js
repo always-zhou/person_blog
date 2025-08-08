@@ -25,8 +25,8 @@ function PostEditor({ post, onSave, onCancel, fixedCategory }) {
         newErrors.content = '内容不能为空';
       }
     } else if (contentType === 'mindmap') {
-      if (!mindMapData || !mindMapData.nodes || mindMapData.nodes.length === 0) {
-        newErrors.content = '思维导图不能为空';
+      if (!mindMapData || !mindMapData.markdown || !mindMapData.markdown.trim()) {
+        newErrors.content = '思维导图内容不能为空';
       }
     }
     
@@ -83,140 +83,182 @@ function PostEditor({ post, onSave, onCancel, fixedCategory }) {
       .replace(/\n/gim, '<br>');
   };
 
-  // 思维导图编辑器组件
+  // 思维导图编辑器组件 - 使用 Markmap 风格
   const MindMapEditor = () => {
-    const [nodes, setNodes] = React.useState(mindMapData?.nodes || [
-      { id: '1', text: '中心主题', x: 400, y: 200, level: 0 }
-    ]);
-    const [draggedNode, setDraggedNode] = React.useState(null);
-    const [dragOffset, setDragOffset] = React.useState({ x: 0, y: 0 });
+    const [mindMapMarkdown, setMindMapMarkdown] = React.useState(
+      mindMapData?.markdown || `# 中心主题
+
+## 分支 1
+- 子节点 1
+- 子节点 2
+
+## 分支 2
+- 子节点 3
+- 子节点 4
+
+## 分支 3
+- 子节点 5
+  - 更深层节点
+- 子节点 6`
+    );
+    const [showPreview, setShowPreview] = React.useState(true);
+    const markmapRef = React.useRef(null);
     
-    const addNode = () => {
-      const newNode = {
-        id: Date.now().toString(),
-        text: '新节点',
-        x: 200 + Math.random() * 400,
-        y: 100 + Math.random() * 300,
-        level: 1
-      };
-      const newNodes = [...nodes, newNode];
-      setNodes(newNodes);
-      setMindMapData({ nodes: newNodes });
-    };
+    // 更新思维导图数据
+    React.useEffect(() => {
+      setMindMapData({ markdown: mindMapMarkdown });
+    }, [mindMapMarkdown]);
     
-    const updateNode = (id, text) => {
-      const newNodes = nodes.map(node => 
-        node.id === id ? { ...node, text } : node
-      );
-      setNodes(newNodes);
-      setMindMapData({ nodes: newNodes });
-    };
-    
-    const updateNodePosition = (id, x, y) => {
-      const newNodes = nodes.map(node => 
-        node.id === id ? { ...node, x, y } : node
-      );
-      setNodes(newNodes);
-      setMindMapData({ nodes: newNodes });
-    };
-    
-    const deleteNode = (id) => {
-      if (nodes.length > 1) {
-        const newNodes = nodes.filter(node => node.id !== id);
-        setNodes(newNodes);
-        setMindMapData({ nodes: newNodes });
+    // 渲染思维导图预览
+    React.useEffect(() => {
+      if (showPreview && markmapRef.current && mindMapMarkdown.trim()) {
+        // 清空之前的内容
+        markmapRef.current.innerHTML = '';
+        
+        // 创建 SVG 元素
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.style.width = '100%';
+        svg.style.height = '400px';
+        markmapRef.current.appendChild(svg);
+        
+        // 简单的思维导图渲染（模拟 markmap 效果）
+        renderSimpleMindMap(svg, mindMapMarkdown);
       }
-    };
+    }, [mindMapMarkdown, showPreview]);
     
-    const handleMouseDown = (e, node) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+    // 简单的思维导图渲染函数
+    const renderSimpleMindMap = (svg, markdown) => {
+      const lines = markdown.split('\n').filter(line => line.trim());
+      const nodes = [];
+      let currentLevel = 0;
       
-      const rect = e.currentTarget.parentElement.getBoundingClientRect();
-      const offsetX = e.clientX - rect.left - node.x;
-      const offsetY = e.clientY - rect.top - node.y;
+      lines.forEach((line, index) => {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('#')) {
+          const level = (trimmed.match(/^#+/) || [''])[0].length;
+          const text = trimmed.replace(/^#+\s*/, '');
+          nodes.push({ level, text, index, x: 0, y: 0 });
+        } else if (trimmed.startsWith('-')) {
+          const level = Math.max(1, (line.match(/^\s*/) || [''])[0].length / 2) + 1;
+          const text = trimmed.replace(/^-\s*/, '');
+          nodes.push({ level, text, index, x: 0, y: 0 });
+        }
+      });
       
-      setDraggedNode(node.id);
-      setDragOffset({ x: offsetX, y: offsetY });
-      e.preventDefault();
+      // 计算节点位置
+      const centerX = 400;
+      const centerY = 200;
+      const levelDistance = 150;
+      const nodeHeight = 40;
+      
+      nodes.forEach((node, i) => {
+        if (node.level === 1) {
+          node.x = centerX;
+          node.y = centerY;
+        } else {
+          const angle = (i / nodes.length) * 2 * Math.PI;
+          node.x = centerX + Math.cos(angle) * levelDistance * (node.level - 1);
+          node.y = centerY + Math.sin(angle) * levelDistance * (node.level - 1);
+        }
+      });
+      
+      // 绘制连接线
+      nodes.forEach((node, i) => {
+        if (node.level > 1) {
+          const parent = nodes.find(n => n.level === node.level - 1);
+          if (parent) {
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', parent.x);
+            line.setAttribute('y1', parent.y);
+            line.setAttribute('x2', node.x);
+            line.setAttribute('y2', node.y);
+            line.setAttribute('stroke', '#3b82f6');
+            line.setAttribute('stroke-width', '2');
+            svg.appendChild(line);
+          }
+        }
+      });
+      
+      // 绘制节点
+      nodes.forEach(node => {
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        
+        const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        const textWidth = node.text.length * 8 + 20;
+        rect.setAttribute('x', node.x - textWidth / 2);
+        rect.setAttribute('y', node.y - 15);
+        rect.setAttribute('width', textWidth);
+        rect.setAttribute('height', 30);
+        rect.setAttribute('rx', 15);
+        rect.setAttribute('fill', node.level === 1 ? '#3b82f6' : '#e5e7eb');
+        rect.setAttribute('stroke', '#3b82f6');
+        rect.setAttribute('stroke-width', '2');
+        
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', node.x);
+        text.setAttribute('y', node.y + 5);
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('fill', node.level === 1 ? 'white' : '#374151');
+        text.setAttribute('font-size', '12');
+        text.setAttribute('font-weight', node.level === 1 ? 'bold' : 'normal');
+        text.textContent = node.text;
+        
+        g.appendChild(rect);
+        g.appendChild(text);
+        svg.appendChild(g);
+      });
     };
-    
-    const containerRef = React.useRef(null);
-     
-     const handleMouseMove = React.useCallback((e) => {
-       if (!draggedNode || !containerRef.current) return;
-       
-       const rect = containerRef.current.getBoundingClientRect();
-       const x = Math.max(0, Math.min(rect.width - 120, e.clientX - rect.left - dragOffset.x));
-       const y = Math.max(0, Math.min(rect.height - 50, e.clientY - rect.top - dragOffset.y));
-       
-       updateNodePosition(draggedNode, x, y);
-     }, [draggedNode, dragOffset.x, dragOffset.y]);
-     
-     const handleMouseUp = React.useCallback(() => {
-       setDraggedNode(null);
-       setDragOffset({ x: 0, y: 0 });
-     }, []);
-     
-     React.useEffect(() => {
-       if (draggedNode) {
-         document.addEventListener('mousemove', handleMouseMove);
-         document.addEventListener('mouseup', handleMouseUp);
-         return () => {
-           document.removeEventListener('mousemove', handleMouseMove);
-           document.removeEventListener('mouseup', handleMouseUp);
-         };
-       }
-     }, [draggedNode, handleMouseMove, handleMouseUp]);
     
     return (
-      <div className="border border-gray-300 rounded-lg p-4 bg-gray-50 min-h-[400px] relative">
-        <div className="mb-4">
+      <div className="border border-gray-300 rounded-lg p-4 bg-gray-50 min-h-[400px]">
+        <div className="mb-4 flex items-center gap-4">
+          <h3 className="text-lg font-semibold text-gray-800">思维导图编辑器</h3>
           <button
             type="button"
-            onClick={addNode}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+            onClick={() => setShowPreview(!showPreview)}
+            className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
           >
-            添加节点
+            {showPreview ? '隐藏预览' : '显示预览'}
           </button>
         </div>
-        <div 
-          ref={containerRef}
-          className="relative w-full h-96 overflow-hidden border border-gray-200 rounded bg-white"
-        >
-          {nodes.map(node => (
-            <div
-              key={node.id}
-              className={`absolute bg-white border-2 rounded-lg p-2 shadow-md select-none ${
-                draggedNode === node.id 
-                  ? 'border-blue-500 cursor-grabbing z-10' 
-                  : 'border-blue-300 cursor-grab hover:border-blue-400'
-              }`}
-              style={{ left: node.x, top: node.y, minWidth: '120px' }}
-              onMouseDown={(e) => handleMouseDown(e, node)}
-            >
-              <input
-                type="text"
-                value={node.text}
-                onChange={(e) => updateNode(node.id, e.target.value)}
-                className="w-full border-none outline-none text-sm font-medium text-center bg-transparent pointer-events-auto"
-                onMouseDown={(e) => e.stopPropagation()}
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Markdown 编辑区 */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Markdown 格式 (使用 # 表示标题层级，- 表示列表项)
+            </label>
+            <textarea
+              value={mindMapMarkdown}
+              onChange={(e) => setMindMapMarkdown(e.target.value)}
+              className="w-full h-80 p-3 border border-gray-300 rounded-lg font-mono text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="# 中心主题&#10;&#10;## 分支 1&#10;- 子节点 1&#10;- 子节点 2&#10;&#10;## 分支 2&#10;- 子节点 3&#10;- 子节点 4"
+            />
+          </div>
+          
+          {/* 预览区 */}
+          {showPreview && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                思维导图预览
+              </label>
+              <div 
+                ref={markmapRef}
+                className="w-full h-80 border border-gray-300 rounded-lg bg-white overflow-hidden"
               />
-              {nodes.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => deleteNode(node.id)}
-                  onMouseDown={(e) => e.stopPropagation()}
-                  className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 pointer-events-auto"
-                >
-                  ×
-                </button>
-              )}
             </div>
-          ))}
+          )}
         </div>
-        <p className="text-sm text-gray-600 mt-2">
-          提示：点击节点可编辑文字，拖拽可移动位置
-        </p>
+        
+        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+          <h4 className="text-sm font-semibold text-blue-800 mb-2">使用说明：</h4>
+          <ul className="text-sm text-blue-700 space-y-1">
+            <li>• 使用 # 表示主题（一个#是中心主题，##是分支，###是子分支）</li>
+            <li>• 使用 - 表示列表项（可以通过缩进创建层级）</li>
+            <li>• 支持多层嵌套结构</li>
+            <li>• 实时预览思维导图效果</li>
+          </ul>
+        </div>
       </div>
     );
   };
