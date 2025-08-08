@@ -1,10 +1,10 @@
-# Direct redirects to /public/ URLs (for production)
-/learning https://blog.awlayswm.com/public/learning 302
-/fitness https://blog.awlayswm.com/public/fitness 302
-/life https://blog.awlayswm.com/public/life 302
-/photography https://blog.awlayswm.com/public/photography 302
-/about https://blog.awlayswm.com/public/about 302
-/admin https://blog.awlayswm.com/public/admin 302
+# Direct redirects to HTML files (for production)
+/learning /learning.html 200
+/fitness /fitness.html 200
+/life /life.html 200
+/photography /photography.html 200
+/about /about.html 200
+/admin /admin.html 200
 
 # Serve HTML files for /public/ paths
 /public/learning /learning.html 200
