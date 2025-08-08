@@ -1,7 +1,7 @@
 // 思维导图编辑器组件 - 独立组件避免重渲染
 const MindMapEditor = React.memo(({ mindMapData, setMindMapData }) => {
   const [mindMapMarkdown, setMindMapMarkdown] = React.useState(
-    mindMapData?.markdown || `# 中心主题\n\n## 分支 1\n- 子节点 1\n- 子节点 2\n\n## 分支 2\n- 子节点 3\n- 子节点 4\n\n## 分支 3\n- 子节点 5\n  - 更深层节点\n- 子节点 6`
+    mindMapData?.markdown || `- 中心主题\n  - 分支 1\n    - 子节点 1\n    - 子节点 2\n  - 分支 2\n    - 子节点 3\n    - 子节点 4\n  - 分支 3\n    - 子节点 5\n      - 更深层节点\n    - 子节点 6`
   );
   const [showPreview, setShowPreview] = React.useState(true);
   const markmapRef = React.useRef(null);
@@ -50,20 +50,20 @@ const MindMapEditor = React.memo(({ mindMapData, setMindMapData }) => {
     }
   }, [mindMapData, showPreview]);
   
-  // 改进的思维导图渲染函数
+  // 改进的思维导图渲染函数 - 只支持 - 符号层级
   const renderSimpleMindMap = (svg, markdown) => {
     const lines = markdown.split('\n').filter(line => line.trim());
     const nodes = [];
     
     lines.forEach((line, index) => {
       const trimmed = line.trim();
-      if (trimmed.startsWith('#')) {
-        const level = (trimmed.match(/^#+/) || [''])[0].length;
-        const text = trimmed.replace(/^#+\s*/, '');
-        nodes.push({ level, text, index, x: 0, y: 0, children: [] });
-      } else if (trimmed.startsWith('-')) {
-        const indentLevel = (line.match(/^\s*/) || [''])[0].length;
-        const level = Math.floor(indentLevel / 2) + 2; // 缩进转换为层级
+      if (trimmed.startsWith('-')) {
+        // 计算缩进级别（每2个空格或1个tab为一级）
+        const indentMatch = line.match(/^(\s*)/);
+        const indentStr = indentMatch ? indentMatch[1] : '';
+        // 计算实际缩进级别：tab算4个空格，每2个空格为一级
+        const indentLevel = indentStr.replace(/\t/g, '    ').length;
+        const level = Math.floor(indentLevel / 2) + 1; // 从1开始计数
         const text = trimmed.replace(/^-\s*/, '');
         nodes.push({ level, text, index, x: 0, y: 0, children: [] });
       }
