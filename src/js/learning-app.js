@@ -41,12 +41,9 @@ function LearningApp() {
 
     // 初始化blogManager并加载文章数据
     React.useEffect(() => {
-      console.log('useEffect triggered, searchTerm:', searchTerm);
       const initializeAndLoadPosts = async () => {
         try {
-          console.log('Initializing blog manager...');
           await blogManager.initialize(); // 确保初始化
-          console.log('Blog manager initialized successfully');
           await loadPosts();
         } catch (error) {
           console.error('Error initializing blog manager:', error);
@@ -57,24 +54,18 @@ function LearningApp() {
 
     const loadPosts = async () => {
       try {
-        console.log('Loading posts for learning category...');
         let filteredPosts;
         
         if (searchTerm.trim()) {
           // 只在学习分类中搜索
-          console.log('Searching posts with term:', searchTerm);
           filteredPosts = await blogManager.searchPosts(searchTerm);
           filteredPosts = filteredPosts.filter(post => post.category === '学习');
         } else {
           // 只获取学习分类的文章
-          console.log('Getting all learning posts...');
           filteredPosts = await blogManager.getPosts('学习');
         }
         
-        console.log('Filtered posts:', filteredPosts);
-        console.log('Number of posts:', filteredPosts.length);
         setPosts(filteredPosts);
-        console.log('Posts state updated');
       } catch (error) {
         console.error('Error loading posts:', error);
       }
@@ -122,11 +113,8 @@ function LearningApp() {
     };
 
     const handleViewPost = (postId) => {
-      console.log('handleViewPost called with postId:', postId);
-      console.log('Current posts:', posts);
       setSelectedPostId(postId);
       setCurrentView('detail');
-      console.log('View changed to detail, selectedPostId:', postId);
     };
 
     const handleBackToList = () => {
