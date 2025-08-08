@@ -2,6 +2,61 @@ function PostDetail({ postId, onBack, onEdit, onDelete }) {
   const [post, setPost] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
 
+  // 简单的 Markdown 渲染函数
+  const renderMarkdown = (text) => {
+    if (!text) return '';
+    
+    return text
+      .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+      .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+      .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+      .replace(/^- (.*$)/gim, '<li>$1</li>')
+      .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
+      .replace(/\n/g, '<br>');
+  };
+
+  // 思维导图查看器组件
+  const MindMapViewer = ({ data }) => {
+    if (!data || !data.nodes || data.nodes.length === 0) {
+      return (
+        <div className="text-center py-8 text-white/60">
+          暂无思维导图内容
+        </div>
+      );
+    }
+
+    return (
+      <div className="mind-map-viewer bg-white/5 rounded-lg p-6">
+        <div className="text-center mb-6">
+          <h3 className="text-xl font-semibold text-white mb-2">思维导图</h3>
+        </div>
+        <div className="space-y-4">
+          {data.nodes.map((node, index) => (
+            <div 
+              key={node.id || index}
+              className="bg-white/10 rounded-lg p-4 border border-white/20"
+              style={{
+                marginLeft: `${(node.level || 0) * 20}px`
+              }}
+            >
+              <div className="text-white font-medium">
+                {node.text || `节点 ${index + 1}`}
+              </div>
+              {node.description && (
+                <div className="text-white/70 text-sm mt-2">
+                  {node.description}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   React.useEffect(() => {
     const loadPost = async () => {
       try {
@@ -135,9 +190,16 @@ function PostDetail({ postId, onBack, onEdit, onDelete }) {
             
             {/* 文章内容 */}
             <div className="prose prose-invert max-w-none">
-              <div className="text-white/90 leading-relaxed whitespace-pre-wrap text-lg">
-                {post.content}
-              </div>
+              {post.contentType === 'mindmap' ? (
+                <MindMapViewer data={post.mindMapData} />
+              ) : (
+                <div 
+                  className="text-white/90 leading-relaxed text-lg"
+                  dangerouslySetInnerHTML={{ 
+                    __html: post.contentType === 'markdown' ? renderMarkdown(post.content) : post.content.replace(/\n/g, '<br>') 
+                  }}
+                />
+              )}
             </div>
           </article>
         </div>

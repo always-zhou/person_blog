@@ -4,10 +4,13 @@ function PostEditor({ post, onSave, onCancel, fixedCategory }) {
     content: post?.content || '',
     category: post?.category || '学习',
     tags: post?.tags?.join(', ') || '',
-    summary: post?.summary || ''
+    summary: post?.summary || '',
+    contentType: post?.contentType || 'markdown' // 新增：内容类型
   });
 
   const [errors, setErrors] = React.useState({});
+  const [showPreview, setShowPreview] = React.useState(false); // 新增：预览模式
+  const [mindMapData, setMindMapData] = React.useState(post?.mindMapData || null); // 新增：思维导图数据
 
   const validateForm = () => {
     const newErrors = {};
@@ -37,7 +40,8 @@ function PostEditor({ post, onSave, onCancel, fixedCategory }) {
     
     const postData = {
       ...formData,
-      tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
+      tags: formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+      mindMapData: formData.contentType === 'mindmap' ? mindMapData : null
     };
     
     onSave(postData);
@@ -58,6 +62,97 @@ function PostEditor({ post, onSave, onCancel, fixedCategory }) {
       setFormData(prev => ({ ...prev, category: fixedCategory }));
     }
   }, [fixedCategory]);
+
+  // Markdown 渲染函数（简单实现）
+  const renderMarkdown = (text) => {
+    return text
+      .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+      .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+      .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+      .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+      .replace(/^- (.*$)/gim, '<li>$1</li>')
+      .replace(/\[([^\]]+)\]\(([^\)]+)\)/gim, '<a href="$2" target="_blank">$1</a>')
+      .replace(/\n/gim, '<br>');
+  };
+
+  // 思维导图编辑器组件
+  const MindMapEditor = () => {
+    const [nodes, setNodes] = React.useState(mindMapData?.nodes || [
+      { id: '1', text: '中心主题', x: 400, y: 200, level: 0 }
+    ]);
+    
+    const addNode = () => {
+      const newNode = {
+        id: Date.now().toString(),
+        text: '新节点',
+        x: 200 + Math.random() * 400,
+        y: 100 + Math.random() * 300,
+        level: 1
+      };
+      const newNodes = [...nodes, newNode];
+      setNodes(newNodes);
+      setMindMapData({ nodes: newNodes });
+    };
+    
+    const updateNode = (id, text) => {
+      const newNodes = nodes.map(node => 
+        node.id === id ? { ...node, text } : node
+      );
+      setNodes(newNodes);
+      setMindMapData({ nodes: newNodes });
+    };
+    
+    const deleteNode = (id) => {
+      if (nodes.length > 1) {
+        const newNodes = nodes.filter(node => node.id !== id);
+        setNodes(newNodes);
+        setMindMapData({ nodes: newNodes });
+      }
+    };
+    
+    return (
+      <div className="border border-gray-300 rounded-lg p-4 bg-gray-50 min-h-[400px] relative">
+        <div className="mb-4">
+          <button
+            type="button"
+            onClick={addNode}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+          >
+            添加节点
+          </button>
+        </div>
+        <div className="relative w-full h-96 overflow-auto border border-gray-200 rounded bg-white">
+          {nodes.map(node => (
+            <div
+              key={node.id}
+              className="absolute bg-white border-2 border-blue-300 rounded-lg p-2 shadow-md cursor-move"
+              style={{ left: node.x, top: node.y, minWidth: '120px' }}
+            >
+              <input
+                type="text"
+                value={node.text}
+                onChange={(e) => updateNode(node.id, e.target.value)}
+                className="w-full border-none outline-none text-sm font-medium text-center bg-transparent"
+              />
+              {nodes.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => deleteNode(node.id)}
+                  className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+        <p className="text-sm text-gray-600 mt-2">
+          提示：点击节点可编辑文字，拖拽可移动位置
+        </p>
+      </div>
+    );
+  };
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
@@ -87,6 +182,37 @@ function PostEditor({ post, onSave, onCancel, fixedCategory }) {
         </div>
 
         {/* 分类由fixedCategory自动设置，无需用户选择 */}
+
+        {/* 内容类型选择 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-800 mb-2">
+            内容格式
+          </label>
+          <div className="flex gap-4">
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="contentType"
+                value="markdown"
+                checked={formData.contentType === 'markdown'}
+                onChange={(e) => handleChange('contentType', e.target.value)}
+                className="mr-2"
+              />
+              <span className="text-gray-700">Markdown</span>
+            </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="contentType"
+                value="mindmap"
+                checked={formData.contentType === 'mindmap'}
+                onChange={(e) => handleChange('contentType', e.target.value)}
+                className="mr-2"
+              />
+              <span className="text-gray-700">思维导图</span>
+            </label>
+          </div>
+        </div>
 
         {/* 标签 */}
         <div>
@@ -123,18 +249,44 @@ function PostEditor({ post, onSave, onCancel, fixedCategory }) {
 
         {/* 内容 */}
         <div>
-          <label className="block text-sm font-medium text-gray-800 mb-2">
-            内容 *
-          </label>
-          <textarea
-            value={formData.content}
-            onChange={(e) => handleChange('content', e.target.value)}
-            className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none transition-all ${
-              errors.content ? 'border-red-500' : 'border-gray-300'
-            }`}
-            rows="15"
-            placeholder="在这里写下你的文章内容...\n\n支持Markdown格式：\n# 一级标题\n## 二级标题\n**粗体文字**\n*斜体文字*\n- 列表项\n\n[链接文字](链接地址)"
-          />
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-gray-800">
+              内容 *
+            </label>
+            {formData.contentType === 'markdown' && (
+              <button
+                type="button"
+                onClick={() => setShowPreview(!showPreview)}
+                className="px-3 py-1 text-sm bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+              >
+                {showPreview ? '编辑' : '预览'}
+              </button>
+            )}
+          </div>
+          
+          {formData.contentType === 'markdown' ? (
+            <div className="grid grid-cols-1 gap-4">
+              {!showPreview ? (
+                <textarea
+                  value={formData.content}
+                  onChange={(e) => handleChange('content', e.target.value)}
+                  className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none transition-all ${
+                    errors.content ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  rows="15"
+                  placeholder="在这里写下你的文章内容...\n\n支持Markdown格式：\n# 一级标题\n## 二级标题\n**粗体文字**\n*斜体文字*\n- 列表项\n\n[链接文字](链接地址)"
+                />
+              ) : (
+                <div 
+                  className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 min-h-[360px] prose max-w-none"
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(formData.content) }}
+                />
+              )}
+            </div>
+          ) : (
+            <MindMapEditor />
+          )}
+          
           {errors.content && (
             <p className="text-red-500 text-sm mt-1">{errors.content}</p>
           )}
