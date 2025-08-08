@@ -2,7 +2,7 @@ class APIClient {
   constructor() {
     // 根据环境设置API基础URL
     this.baseURL = this.getAPIBaseURL();
-    this.timeout = 10000; // 10秒超时
+    this.timeout = 30000; // 30秒超时，增加超时时间
   }
 
   // 获取API基础URL
@@ -43,7 +43,10 @@ class APIClient {
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+      const timeoutId = setTimeout(() => {
+        console.warn(`Request timeout after ${this.timeout}ms for ${url}`);
+        controller.abort();
+      }, this.timeout);
       
       const response = await fetch(url, {
         ...config,
@@ -53,13 +56,23 @@ class APIClient {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text().catch(() => 'Unknown error');
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
       }
 
       return await response.json();
     } catch (error) {
-      console.error('API request failed:', error);
-      throw error;
+      // 改进错误处理，提供更详细的错误信息
+      if (error.name === 'AbortError') {
+        console.error('API request was aborted (timeout or manual abort):', url);
+        throw new Error(`Request timeout: ${url}`);
+      } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        console.error('Network error - API server may be unreachable:', url);
+        throw new Error(`Network error: Unable to reach API server`);
+      } else {
+        console.error('API request failed:', error);
+        throw error;
+      }
     }
   }
 

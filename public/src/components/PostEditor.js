@@ -104,16 +104,22 @@ function PostEditor({ post, onSave, onCancel, fixedCategory }) {
     const [showPreview, setShowPreview] = React.useState(true);
     const markmapRef = React.useRef(null);
     const debounceTimerRef = React.useRef(null);
+    const [isComposing, setIsComposing] = React.useState(false);
     
     // 防抖更新思维导图数据
-    const debouncedUpdateMindMapData = React.useCallback((value) => {
+    const debouncedUpdateMindMapData = React.useCallback((value, skipIfComposing = true) => {
+      // 如果正在中文输入组合且需要跳过，则不更新
+      if (skipIfComposing && isComposing) {
+        return;
+      }
+      
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
       debounceTimerRef.current = setTimeout(() => {
         setMindMapData({ markdown: value });
       }, 300); // 300ms 防抖
-    }, [setMindMapData]);
+    }, [setMindMapData, isComposing]);
     
     // 清理定时器
     React.useEffect(() => {
@@ -249,6 +255,12 @@ function PostEditor({ post, onSave, onCancel, fixedCategory }) {
                 const newValue = e.target.value;
                 setMindMapMarkdown(newValue);
                 debouncedUpdateMindMapData(newValue);
+              }}
+              onCompositionStart={() => setIsComposing(true)}
+              onCompositionEnd={(e) => {
+                setIsComposing(false);
+                // 组合输入结束后立即更新
+                debouncedUpdateMindMapData(e.target.value, false);
               }}
               className="w-full h-80 p-3 border border-gray-300 rounded-lg font-mono text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="# 中心主题&#10;&#10;## 分支 1&#10;- 子节点 1&#10;- 子节点 2&#10;&#10;## 分支 2&#10;- 子节点 3&#10;- 子节点 4"
