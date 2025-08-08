@@ -39,12 +39,23 @@ const MindMapEditor = React.memo(({ mindMapData, setMindMapData }) => {
       // 清空之前的内容
       markmapRef.current.innerHTML = '';
       
-      // 创建 SVG 元素
+      // 创建容器和SVG元素
+      const svgContainer = document.createElement('div');
+      svgContainer.style.width = '100%';
+      svgContainer.style.height = '500px';
+      svgContainer.style.overflow = 'auto';
+      svgContainer.style.border = '1px solid rgba(255,255,255,0.2)';
+      svgContainer.style.borderRadius = '8px';
+      svgContainer.style.backgroundColor = 'rgba(255,255,255,0.05)';
+      
       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       svg.style.width = '100%';
       svg.style.height = 'auto';
-      svg.style.minHeight = '400px';
-      markmapRef.current.appendChild(svg);
+      svg.style.minHeight = '500px';
+      svg.style.cursor = 'grab';
+      
+      svgContainer.appendChild(svg);
+      markmapRef.current.appendChild(svgContainer);
       
       // 简单的思维导图渲染（模拟 markmap 效果）
       renderSimpleMindMap(svg, mindMapData.markdown);
@@ -84,9 +95,9 @@ const MindMapEditor = React.memo(({ mindMapData, setMindMapData }) => {
     }
     
     // 计算节点位置 - 水平树形布局算法
-    const startX = 100; // 从左边开始
-    const centerY = 300;
-    const levelDistance = 200; // 增加水平间距
+    const startX = 150; // 从左边开始
+    const centerY = 400;
+    const levelDistance = 300; // 大幅增加水平间距
     
     // 找到根节点（level 1）
     const rootNodes = nodes.filter(n => n.level === 1);
@@ -169,14 +180,17 @@ const MindMapEditor = React.memo(({ mindMapData, setMindMapData }) => {
     
     // 动态计算SVG尺寸
     if (nodes.length > 0) {
-      const maxX = Math.max(...nodes.map(n => n.x + Math.max(n.text.length * 8 + 20, 80)));
-      const maxY = Math.max(...nodes.map(n => n.y + 30));
-      const minY = Math.min(...nodes.map(n => n.y - 30));
-      const width = Math.max(1000, maxX + 100);
-      const height = Math.max(400, maxY - minY + 100);
+      const maxX = Math.max(...nodes.map(n => n.x + Math.max(n.text.length * 10, 100)));
+      const maxY = Math.max(...nodes.map(n => n.y + 40));
+      const minY = Math.min(...nodes.map(n => n.y - 40));
+      const minX = Math.min(...nodes.map(n => n.x - Math.max(n.text.length * 5, 50)));
       
-      svg.setAttribute('viewBox', `0 ${minY - 50} ${width} ${height}`);
-      svg.style.height = `${Math.min(600, height)}px`;
+      const width = Math.max(1500, maxX - minX + 200);
+      const height = Math.max(600, maxY - minY + 200);
+      
+      svg.setAttribute('viewBox', `${minX - 100} ${minY - 100} ${width} ${height}`);
+      svg.style.width = `${width}px`;
+      svg.style.height = `${height}px`;
     }
   };
   
@@ -194,9 +208,16 @@ const MindMapEditor = React.memo(({ mindMapData, setMindMapData }) => {
       }
     }
     
-    // 水平树形布局：子节点向右展开，垂直排列
-    const nodeHeight = 80; // 增加节点间垂直距离
-    const startY = parent.y - ((directChildren.length - 1) * nodeHeight) / 2;
+    if (directChildren.length === 0) return;
+    
+    // 根据层级动态调整间距
+    const baseNodeHeight = 120; // 基础垂直间距
+    const levelMultiplier = Math.max(1, parent.level * 0.8); // 层级越深，间距稍微减小
+    const nodeHeight = baseNodeHeight * levelMultiplier;
+    
+    // 计算子节点总高度
+    const totalHeight = (directChildren.length - 1) * nodeHeight;
+    const startY = parent.y - totalHeight / 2;
     
     directChildren.forEach((child, i) => {
       child.x = parent.x + levelDistance; // 向右展开
