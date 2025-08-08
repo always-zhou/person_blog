@@ -82,38 +82,51 @@ function PostDetail({ postId, onBack, onEdit, onDelete }) {
         }
         });
         
-        // 递归布局子节点的辅助函数 - 改进的水平树形布局
-        function layoutChildren(parent, allNodes, startX, centerY, levelDistance) {
-          const directChildren = [];
+        // 全局垂直位置分配 - 避免重叠的智能布局
+        function assignGlobalPositions(nodes, levelDistance) {
+          // 按层级分组
+          const levelGroups = {};
+          nodes.forEach(node => {
+            if (!levelGroups[node.level]) {
+              levelGroups[node.level] = [];
+            }
+            levelGroups[node.level].push(node);
+          });
           
-          // 找到直接子节点
-          for (let i = parent.index + 1; i < allNodes.length; i++) {
-            const node = allNodes[i];
-            if (node.level === parent.level + 1) {
-              directChildren.push(node);
-            } else if (node.level <= parent.level) {
-              break;
+          // 为每个节点分配全局垂直位置
+          let globalYPosition = 0;
+          const nodeSpacing = 100; // 节点间的最小垂直间距
+          
+          // 深度优先遍历，确保父子关系的垂直顺序
+          function assignPositionsDFS(nodeIndex, allNodes) {
+            const node = allNodes[nodeIndex];
+            if (node.positioned) return;
+            
+            // 设置水平位置
+            node.x = 150 + (node.level - 1) * levelDistance;
+            
+            // 设置垂直位置
+            node.y = globalYPosition;
+            node.positioned = true;
+            globalYPosition += nodeSpacing;
+            
+            // 处理直接子节点
+            for (let i = nodeIndex + 1; i < allNodes.length; i++) {
+              const child = allNodes[i];
+              if (child.level === node.level + 1 && !child.positioned) {
+                assignPositionsDFS(i, allNodes);
+              } else if (child.level <= node.level) {
+                break;
+              }
             }
           }
           
-          if (directChildren.length === 0) return;
-          
-          // 根据层级动态调整间距
-          const baseNodeHeight = 120; // 基础垂直间距
-          const levelMultiplier = Math.max(1, parent.level * 0.8); // 层级越深，间距稍微减小
-          const nodeHeight = baseNodeHeight * levelMultiplier;
-          
-          // 计算子节点总高度
-          const totalHeight = (directChildren.length - 1) * nodeHeight;
-          const startY = parent.y - totalHeight / 2;
-          
-          directChildren.forEach((child, i) => {
-            child.x = parent.x + levelDistance; // 向右展开
-            child.y = startY + i * nodeHeight; // 垂直排列
-            
-            // 递归布局子节点的子节点
-            layoutChildren(child, allNodes, startX, centerY, levelDistance);
-          });
+          // 从根节点开始分配位置
+          for (let i = 0; i < nodes.length; i++) {
+            if (nodes[i].level === 1 && !nodes[i].positioned) {
+              assignPositionsDFS(i, nodes);
+            }
+          }
         }
       
       // 建立父子关系
@@ -129,22 +142,11 @@ function PostDetail({ postId, onBack, onEdit, onDelete }) {
         }
       }
       
-      // 计算节点位置 - 水平树形布局算法
-      const startX = 150; // 从左边开始
-      const centerY = 400;
-      const levelDistance = 300; // 大幅增加水平间距
+      // 使用全局位置分配算法 - 避免重叠
+      const levelDistance = 350; // 水平层级间距
       
-      // 找到根节点（level 1）
-      const rootNodes = nodes.filter(n => n.level === 1);
-      
-      if (rootNodes.length > 0) {
-        const root = rootNodes[0];
-        root.x = startX;
-        root.y = centerY;
-        
-        // 递归布局子节点
-        layoutChildren(root, nodes, startX, centerY, levelDistance);
-      }
+      // 分配所有节点的位置
+      assignGlobalPositions(nodes, levelDistance);
       
       // 如果没有根节点，使用简单的水平布局
       if (rootNodes.length === 0) {
