@@ -19,8 +19,15 @@ function PostEditor({ post, onSave, onCancel, fixedCategory }) {
       newErrors.title = '标题不能为空';
     }
     
-    if (!formData.content.trim()) {
-      newErrors.content = '内容不能为空';
+    // 根据内容类型验证不同的字段
+    if (contentType === 'markdown') {
+      if (!formData.content.trim()) {
+        newErrors.content = '内容不能为空';
+      }
+    } else if (contentType === 'mindmap') {
+      if (!mindMapData || !mindMapData.nodes || mindMapData.nodes.length === 0) {
+        newErrors.content = '思维导图不能为空';
+      }
     }
     
     if (!formData.summary.trim()) {
@@ -81,6 +88,8 @@ function PostEditor({ post, onSave, onCancel, fixedCategory }) {
     const [nodes, setNodes] = React.useState(mindMapData?.nodes || [
       { id: '1', text: '中心主题', x: 400, y: 200, level: 0 }
     ]);
+    const [draggedNode, setDraggedNode] = React.useState(null);
+    const [dragOffset, setDragOffset] = React.useState({ x: 0, y: 0 });
     
     const addNode = () => {
       const newNode = {
@@ -103,6 +112,14 @@ function PostEditor({ post, onSave, onCancel, fixedCategory }) {
       setMindMapData({ nodes: newNodes });
     };
     
+    const updateNodePosition = (id, x, y) => {
+      const newNodes = nodes.map(node => 
+        node.id === id ? { ...node, x, y } : node
+      );
+      setNodes(newNodes);
+      setMindMapData({ nodes: newNodes });
+    };
+    
     const deleteNode = (id) => {
       if (nodes.length > 1) {
         const newNodes = nodes.filter(node => node.id !== id);
@@ -110,6 +127,46 @@ function PostEditor({ post, onSave, onCancel, fixedCategory }) {
         setMindMapData({ nodes: newNodes });
       }
     };
+    
+    const handleMouseDown = (e, node) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+      
+      const rect = e.currentTarget.parentElement.getBoundingClientRect();
+      const offsetX = e.clientX - rect.left - node.x;
+      const offsetY = e.clientY - rect.top - node.y;
+      
+      setDraggedNode(node.id);
+      setDragOffset({ x: offsetX, y: offsetY });
+      e.preventDefault();
+    };
+    
+    const containerRef = React.useRef(null);
+     
+     const handleMouseMove = React.useCallback((e) => {
+       if (!draggedNode || !containerRef.current) return;
+       
+       const rect = containerRef.current.getBoundingClientRect();
+       const x = Math.max(0, Math.min(rect.width - 120, e.clientX - rect.left - dragOffset.x));
+       const y = Math.max(0, Math.min(rect.height - 50, e.clientY - rect.top - dragOffset.y));
+       
+       updateNodePosition(draggedNode, x, y);
+     }, [draggedNode, dragOffset.x, dragOffset.y]);
+     
+     const handleMouseUp = React.useCallback(() => {
+       setDraggedNode(null);
+       setDragOffset({ x: 0, y: 0 });
+     }, []);
+     
+     React.useEffect(() => {
+       if (draggedNode) {
+         document.addEventListener('mousemove', handleMouseMove);
+         document.addEventListener('mouseup', handleMouseUp);
+         return () => {
+           document.removeEventListener('mousemove', handleMouseMove);
+           document.removeEventListener('mouseup', handleMouseUp);
+         };
+       }
+     }, [draggedNode, handleMouseMove, handleMouseUp]);
     
     return (
       <div className="border border-gray-300 rounded-lg p-4 bg-gray-50 min-h-[400px] relative">
@@ -122,24 +179,34 @@ function PostEditor({ post, onSave, onCancel, fixedCategory }) {
             添加节点
           </button>
         </div>
-        <div className="relative w-full h-96 overflow-auto border border-gray-200 rounded bg-white">
+        <div 
+          ref={containerRef}
+          className="relative w-full h-96 overflow-hidden border border-gray-200 rounded bg-white"
+        >
           {nodes.map(node => (
             <div
               key={node.id}
-              className="absolute bg-white border-2 border-blue-300 rounded-lg p-2 shadow-md cursor-move"
+              className={`absolute bg-white border-2 rounded-lg p-2 shadow-md select-none ${
+                draggedNode === node.id 
+                  ? 'border-blue-500 cursor-grabbing z-10' 
+                  : 'border-blue-300 cursor-grab hover:border-blue-400'
+              }`}
               style={{ left: node.x, top: node.y, minWidth: '120px' }}
+              onMouseDown={(e) => handleMouseDown(e, node)}
             >
               <input
                 type="text"
                 value={node.text}
                 onChange={(e) => updateNode(node.id, e.target.value)}
-                className="w-full border-none outline-none text-sm font-medium text-center bg-transparent"
+                className="w-full border-none outline-none text-sm font-medium text-center bg-transparent pointer-events-auto"
+                onMouseDown={(e) => e.stopPropagation()}
               />
               {nodes.length > 1 && (
                 <button
                   type="button"
                   onClick={() => deleteNode(node.id)}
-                  className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 pointer-events-auto"
                 >
                   ×
                 </button>
