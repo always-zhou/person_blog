@@ -99,14 +99,12 @@ function LifeApp() {
     };
 
     const handleDeletePost = async (postId) => {
-      if (confirm('确定要删除这篇文章吗？')) {
-        try {
-          await blogManager.deletePost(postId);
-          await loadPosts();
-        } catch (error) {
-          console.error('删除文章失败:', error);
-          alert('删除文章失败，请重试');
-        }
+      try {
+        await blogManager.deletePost(postId);
+        await loadPosts();
+      } catch (error) {
+        console.error('删除文章失败:', error);
+        alert('删除文章失败，请重试');
       }
     };
 
@@ -191,7 +189,7 @@ function LifeApp() {
                     post={post}
                     onClick={() => handleViewPost(post.id)}
                     onEdit={() => handleEditPost(post)}
-                    onDelete={handleDeletePost}
+                    onDelete={(postId) => handleDeletePost(postId)}
                     showActions={true}
                   />
                 ))
