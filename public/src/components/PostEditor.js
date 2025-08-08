@@ -100,12 +100,9 @@ const MindMapEditor = React.memo(({ mindMapData, setMindMapData }) => {
     // 分配所有节点的位置
     assignGlobalPositions(nodes, levelDistance);
     
-    // 如果没有根节点，使用简单的水平布局
-    if (rootNodes.length === 0) {
-      nodes.forEach((node, i) => {
-        node.x = startX + (node.level - 1) * levelDistance;
-        node.y = 50 + i * 40;
-      });
+    // 如果没有节点，直接返回
+    if (nodes.length === 0) {
+      return;
     }
     
     // 绘制连接线 - 改进的连接逻辑
