@@ -186,19 +186,36 @@ function LearningApp() {
               </button>
             </div>
 
+            {/* 调试信息 */}
+            <div className="mb-4 p-4 bg-black/30 rounded-lg">
+              <div className="text-white/80 text-sm">
+                <p>调试信息: posts.length = {posts.length}</p>
+                <p>搜索词: "{searchTerm}"</p>
+                {posts.length > 0 && (
+                  <p>文章列表: {posts.map(p => p.title).join(', ')}</p>
+                )}
+              </div>
+            </div>
+
             {/* 文章列表 */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {posts.length > 0 ? (
-                posts.map(post => (
-                  <PostCard
-                    key={post.id}
-                    post={post}
-                    onClick={() => handleViewPost(post.id)}
-                    onEdit={() => handleEditPost(post)}
-                    onDelete={() => handleDeletePost(post.id)}
-                    showActions={true}
-                  />
-                ))
+                posts.map(post => {
+                  console.log('Rendering PostCard for post:', post.id, post.title);
+                  return (
+                    <PostCard
+                      key={post.id}
+                      post={post}
+                      onClick={() => {
+                        console.log('Learning page - PostCard onClick triggered for:', post.id);
+                        handleViewPost(post.id);
+                      }}
+                      onEdit={() => handleEditPost(post)}
+                      onDelete={() => handleDeletePost(post.id)}
+                      showActions={true}
+                    />
+                  );
+                })
               ) : (
                 <div className="col-span-full text-center py-12">
                   <div className="text-white/60 text-lg">
