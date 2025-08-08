@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Console Test</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script>
+        console.log('Basic JavaScript is working');
+        
+        // Test if React is loaded
+        if (typeof React !== 'undefined') {
+            console.log('React is loaded successfully');
+        } else {
+            console.error('React is not loaded');
+        }
+        
+        // Test if ReactDOM is loaded
+        if (typeof ReactDOM !== 'undefined') {
+            console.log('ReactDOM is loaded successfully');
+        } else {
+            console.error('ReactDOM is not loaded');
+        }
+    </script>
+    
+    <script type="text/babel">
+        console.log('Babel is working');
+        
+        function TestComponent() {
+            const handleClick = () => {
+                console.log('Test button clicked!');
+            };
+            
+            return (
+                <div className="p-4">
+                    <h1 className="text-2xl font-bold mb-4">Console Test Page</h1>
+                    <button 
+                        onClick={handleClick}
+                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                    >
+                        Click me to test console
+                    </button>
+                    <p className="mt-4 text-gray-600">
+                        Check the browser console for debug messages.
+                    </p>
+                </div>
+            );
+        }
+        
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<TestComponent />);
+        
+        console.log('Test component rendered');
+    </script>
+</body>
+</html>
