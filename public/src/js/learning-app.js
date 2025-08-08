@@ -198,7 +198,7 @@ function LearningApp() {
                     post={post}
                     onClick={() => handleViewPost(post.id)}
                     onEdit={() => handleEditPost(post)}
-                    onDelete={() => handleDeletePost(post.id)}
+                    onDelete={handleDeletePost}
                     showActions={true}
                   />
                 ))
