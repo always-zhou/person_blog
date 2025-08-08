@@ -41,9 +41,12 @@ function LearningApp() {
 
     // 初始化blogManager并加载文章数据
     React.useEffect(() => {
+      console.log('useEffect triggered, searchTerm:', searchTerm);
       const initializeAndLoadPosts = async () => {
         try {
+          console.log('Initializing blog manager...');
           await blogManager.initialize(); // 确保初始化
+          console.log('Blog manager initialized successfully');
           await loadPosts();
         } catch (error) {
           console.error('Error initializing blog manager:', error);
