@@ -5,8 +5,9 @@ window.BLOG_CONFIG = {
   WORKER_URL: 'https://awlayswm.com',
   
   // 其他配置选项
-  API_TIMEOUT: 10000, // API 请求超时时间（毫秒）
+  API_TIMEOUT: 5000, // API 请求超时时间（毫秒）- 优化为5秒
   ENABLE_DEBUG: false, // 是否启用调试模式
+  ENABLE_PRELOAD: true, // 启用资源预加载
 };
 
 // 将配置暴露到全局变量
