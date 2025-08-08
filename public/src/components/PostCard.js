@@ -17,10 +17,20 @@ function PostCard({ post, onClick, showActions = false, onEdit, onDelete }) {
     return colors[category] || 'from-gray-500 to-gray-600';
   };
 
+  const handleClick = (e) => {
+    console.log('PostCard clicked, post:', post);
+    console.log('onClick function:', onClick);
+    if (onClick) {
+      onClick(e);
+    } else {
+      console.error('onClick is not defined');
+    }
+  };
+
   return (
     <div 
       className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 transform hover:scale-105 cursor-pointer group"
-      onClick={onClick}
+      onClick={handleClick}
     >
       <div>
         {/* 分类标签 */}
