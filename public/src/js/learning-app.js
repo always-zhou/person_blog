@@ -1,3 +1,7 @@
+console.log('learning-app.js 开始加载...');
+console.log('React 版本:', React.version);
+console.log('当前时间:', new Date().toISOString());
+
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -30,20 +34,37 @@ class ErrorBoundary extends React.Component {
 }
 
 function LearningApp() {
+  console.log('LearningApp 函数开始执行...');
+  
   const [currentView, setCurrentView] = React.useState('list'); // 移除selectedCategory
   const [selectedPostId, setSelectedPostId] = React.useState(null);
   const [posts, setPosts] = React.useState([]);
   const [searchTerm, setSearchTerm] = React.useState('');
   const [showEditor, setShowEditor] = React.useState(false);
   const [editingPost, setEditingPost] = React.useState(null);
-  const [blogManager] = React.useState(() => new HybridBlogManager());
+  
+  console.log('准备创建 HybridBlogManager...');
+  const [blogManager] = React.useState(() => {
+    try {
+      const manager = new HybridBlogManager();
+      console.log('HybridBlogManager 创建成功:', manager);
+      return manager;
+    } catch (error) {
+      console.error('创建 HybridBlogManager 失败:', error);
+      throw error;
+    }
+  });
 
     // 初始化blogManager并加载文章数据
     React.useEffect(() => {
+      console.log('useEffect 开始执行, searchTerm:', searchTerm);
       const initializeAndLoadPosts = async () => {
         try {
+          console.log('开始初始化 blogManager...');
           await blogManager.initialize(); // 确保初始化
+          console.log('blogManager 初始化完成');
           await loadPosts();
+          console.log('文章加载完成');
         } catch (error) {
           console.error('Error initializing blog manager:', error);
         }
@@ -52,19 +73,27 @@ function LearningApp() {
     }, [searchTerm]); // 移除selectedCategory依赖
 
     const loadPosts = async () => {
+      console.log('loadPosts 函数开始执行, searchTerm:', searchTerm);
       try {
         let filteredPosts;
         
         if (searchTerm.trim()) {
+          console.log('执行搜索, 关键词:', searchTerm);
           // 只在学习分类中搜索
           filteredPosts = await blogManager.searchPosts(searchTerm);
+          console.log('搜索结果:', filteredPosts);
           filteredPosts = filteredPosts.filter(post => post.category === '学习');
+          console.log('过滤后的搜索结果:', filteredPosts);
         } else {
+          console.log('获取学习分类的所有文章');
           // 只获取学习分类的文章
           filteredPosts = await blogManager.getPosts('学习');
+          console.log('获取到的文章:', filteredPosts);
         }
         
+        console.log('设置文章数据, 数量:', filteredPosts.length);
         setPosts(filteredPosts);
+        console.log('文章数据设置完成');
       } catch (error) {
         console.error('Error loading posts:', error);
       }

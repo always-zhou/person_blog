@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学习页面调试测试</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(45deg, #3b82f6, #1e40af, #8b5cf6, #6366f1);
+            min-height: 100vh;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <!-- 加载必要的脚本 -->
+    <script src="src/js/config.js"></script>
+    <script src="src/js/cloudflare-kv-manager.js"></script>
+    <script src="src/js/api-client.js"></script>
+    <script src="src/js/blog-manager.js"></script>
+    <script src="src/js/blog-manager-kv.js"></script>
+    <script src="src/js/hybrid-blog-manager.js"></script>
+    
+    <script type="text/babel">
+        console.log('测试页面开始加载...');
+        
+        // 测试基础功能
+        function TestApp() {
+            const [message, setMessage] = React.useState('页面加载成功');
+            const [clickCount, setClickCount] = React.useState(0);
+            
+            React.useEffect(() => {
+                console.log('TestApp组件已挂载');
+                
+                // 测试HybridBlogManager
+                try {
+                    const blogManager = new HybridBlogManager();
+                    console.log('HybridBlogManager创建成功:', blogManager);
+                    
+                    // 测试初始化
+                    blogManager.initialize().then(() => {
+                        console.log('HybridBlogManager初始化成功');
+                        
+                        // 测试获取学习文章
+                        return blogManager.getPosts('学习');
+                    }).then(posts => {
+                        console.log('获取学习文章成功:', posts);
+                        setMessage(`找到 ${posts.length} 篇学习文章`);
+                    }).catch(error => {
+                        console.error('HybridBlogManager测试失败:', error);
+                        setMessage('HybridBlogManager测试失败: ' + error.message);
+                    });
+                } catch (error) {
+                    console.error('创建HybridBlogManager失败:', error);
+                    setMessage('创建HybridBlogManager失败: ' + error.message);
+                }
+            }, []);
+            
+            const handleClick = () => {
+                console.log('测试按钮被点击');
+                setClickCount(prev => prev + 1);
+            };
+            
+            return (
+                <div className="max-w-4xl mx-auto">
+                    <h1 className="text-3xl font-bold text-white mb-8 text-center">
+                        学习页面调试测试
+                    </h1>
+                    
+                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 mb-6">
+                        <h2 className="text-xl font-bold text-white mb-4">测试结果</h2>
+                        <p className="text-white/80 mb-4">状态: {message}</p>
+                        <p className="text-white/80 mb-4">点击次数: {clickCount}</p>
+                        
+                        <button 
+                            onClick={handleClick}
+                            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                            测试点击事件
+                        </button>
+                    </div>
+                    
+                    <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4">
+                        <h3 className="text-red-400 font-bold mb-2">调试信息</h3>
+                        <div className="text-sm text-red-300">
+                            <p>React版本: {React.version}</p>
+                            <p>当前时间: {new Date().toLocaleString()}</p>
+                            <p>用户代理: {navigator.userAgent.substring(0, 50)}...</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        
+        console.log('准备渲染TestApp组件...');
+        
+        try {
+            const root = ReactDOM.createRoot(document.getElementById('root'));
+            root.render(<TestApp />);
+            console.log('TestApp组件渲染成功');
+        } catch (error) {
+            console.error('渲染TestApp组件失败:', error);
+            document.getElementById('root').innerHTML = `
+                <div style="color: white; text-align: center; padding: 20px;">
+                    <h1>渲染失败</h1>
+                    <p>错误: ${error.message}</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
