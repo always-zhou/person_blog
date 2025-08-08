@@ -1,4 +1,4 @@
-function PostCard({ post, onClick, showActions = false, onEdit, onDelete }) {
+function PostCard({ post, onClick, onView, showActions = false, onEdit, onDelete }) {
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('zh-CN', {
       year: 'numeric',
@@ -20,10 +20,13 @@ function PostCard({ post, onClick, showActions = false, onEdit, onDelete }) {
   const handleClick = (e) => {
     console.log('PostCard clicked, post:', post);
     console.log('onClick function:', onClick);
+    console.log('onView function:', onView);
     if (onClick) {
       onClick(e);
+    } else if (onView) {
+      onView(e);
     } else {
-      console.error('onClick is not defined');
+      console.error('Neither onClick nor onView is defined');
     }
   };
 
