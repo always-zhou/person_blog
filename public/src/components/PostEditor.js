@@ -20,11 +20,11 @@ function PostEditor({ post, onSave, onCancel, fixedCategory }) {
     }
     
     // 根据内容类型验证不同的字段
-    if (contentType === 'markdown') {
+    if (formData.contentType === 'markdown') {
       if (!formData.content.trim()) {
         newErrors.content = '内容不能为空';
       }
-    } else if (contentType === 'mindmap') {
+    } else if (formData.contentType === 'mindmap') {
       if (!mindMapData || !mindMapData.markdown || !mindMapData.markdown.trim()) {
         newErrors.content = '思维导图内容不能为空';
       }
@@ -103,8 +103,26 @@ function PostEditor({ post, onSave, onCancel, fixedCategory }) {
     );
     const [showPreview, setShowPreview] = React.useState(true);
     const markmapRef = React.useRef(null);
+    const debounceTimerRef = React.useRef(null);
     
-    // 更新思维导图数据（移除 useEffect，直接在 onChange 中处理）
+    // 防抖更新思维导图数据
+    const debouncedUpdateMindMapData = React.useCallback((value) => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      debounceTimerRef.current = setTimeout(() => {
+        setMindMapData({ markdown: value });
+      }, 300); // 300ms 防抖
+    }, [setMindMapData]);
+    
+    // 清理定时器
+    React.useEffect(() => {
+      return () => {
+        if (debounceTimerRef.current) {
+          clearTimeout(debounceTimerRef.current);
+        }
+      };
+    }, []);
     
     // 渲染思维导图预览
     React.useEffect(() => {
@@ -230,7 +248,7 @@ function PostEditor({ post, onSave, onCancel, fixedCategory }) {
               onChange={(e) => {
                 const newValue = e.target.value;
                 setMindMapMarkdown(newValue);
-                setMindMapData({ markdown: newValue });
+                debouncedUpdateMindMapData(newValue);
               }}
               className="w-full h-80 p-3 border border-gray-300 rounded-lg font-mono text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="# 中心主题&#10;&#10;## 分支 1&#10;- 子节点 1&#10;- 子节点 2&#10;&#10;## 分支 2&#10;- 子节点 3&#10;- 子节点 4"
