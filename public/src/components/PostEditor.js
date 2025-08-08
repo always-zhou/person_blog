@@ -104,10 +104,7 @@ function PostEditor({ post, onSave, onCancel, fixedCategory }) {
     const [showPreview, setShowPreview] = React.useState(true);
     const markmapRef = React.useRef(null);
     
-    // 更新思维导图数据
-    React.useEffect(() => {
-      setMindMapData({ markdown: mindMapMarkdown });
-    }, [mindMapMarkdown]);
+    // 更新思维导图数据（移除 useEffect，直接在 onChange 中处理）
     
     // 渲染思维导图预览
     React.useEffect(() => {
@@ -230,7 +227,11 @@ function PostEditor({ post, onSave, onCancel, fixedCategory }) {
             </label>
             <textarea
               value={mindMapMarkdown}
-              onChange={(e) => setMindMapMarkdown(e.target.value)}
+              onChange={(e) => {
+                const newValue = e.target.value;
+                setMindMapMarkdown(newValue);
+                setMindMapData({ markdown: newValue });
+              }}
               className="w-full h-80 p-3 border border-gray-300 rounded-lg font-mono text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="# 中心主题&#10;&#10;## 分支 1&#10;- 子节点 1&#10;- 子节点 2&#10;&#10;## 分支 2&#10;- 子节点 3&#10;- 子节点 4"
             />
