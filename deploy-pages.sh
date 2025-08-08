@@ -36,8 +36,10 @@ fi
 # 推送到远程仓库
 echo "🔄 推送到远程仓库..."
 if git remote | grep -q origin; then
-    git push origin main || git push origin master
-    echo "✅ 代码已推送到GitHub"
+    # 获取当前分支名
+    current_branch=$(git branch --show-current)
+    git push origin $current_branch
+    echo "✅ 代码已推送到GitHub ($current_branch 分支)"
 else
     echo "⚠️  警告: 未找到远程仓库"
     echo "请先添加远程仓库: git remote add origin <your-repo-url>"
