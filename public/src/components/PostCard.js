@@ -81,9 +81,14 @@ function PostCard({ post, onClick, showActions = false, onEdit, onDelete }) {
           </button>
           <button
             onClick={(e) => {
+              console.log('删除按钮被点击，post.id:', post.id);
               e.stopPropagation();
+              console.log('准备显示确认对话框');
               if (confirm('确定要删除这篇文章吗？')) {
+                console.log('用户确认删除，调用onDelete');
                 onDelete(post.id);
+              } else {
+                console.log('用户取消删除');
               }
             }}
             className="flex-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
