@@ -43,7 +43,8 @@ function PostDetail({ postId, onBack, onEdit, onDelete }) {
         // 创建 SVG 元素
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.style.width = '100%';
-        svg.style.height = '400px';
+        svg.style.height = '500px';
+        svg.setAttribute('viewBox', '0 0 1000 500');
         markmapRef.current.appendChild(svg);
         
         // 渲染思维导图
@@ -51,44 +52,102 @@ function PostDetail({ postId, onBack, onEdit, onDelete }) {
       }
     }, [data, hasMarkdownData]);
     
-    // 从 Markdown 渲染思维导图
+    // 从 Markdown 渲染思维导图 - 水平树形布局
     const renderMindMapFromMarkdown = (svg, markdown) => {
       const lines = markdown.split('\n').filter(line => line.trim());
       const nodes = [];
       
       lines.forEach((line, index) => {
         const trimmed = line.trim();
-        if (trimmed.startsWith('#')) {
-          const level = (trimmed.match(/^#+/) || [''])[0].length;
-          const text = trimmed.replace(/^#+\s*/, '');
-          nodes.push({ level, text, index, x: 0, y: 0 });
-        } else if (trimmed.startsWith('-')) {
-          const level = Math.max(1, (line.match(/^\s*/) || [''])[0].length / 2) + 1;
+        if (trimmed.startsWith('-')) {
+          // 计算缩进级别（每2个空格或1个tab为一级）
+          const indentMatch = line.match(/^(\s*)/);
+          const indentStr = indentMatch ? indentMatch[1] : '';
+          // 计算实际缩进级别：tab算4个空格，每2个空格为一级
+          const indentLevel = indentStr.replace(/\t/g, '    ').length;
+          const level = Math.floor(indentLevel / 2) + 1; // 从1开始计数
           const text = trimmed.replace(/^-\s*/, '');
-          nodes.push({ level, text, index, x: 0, y: 0 });
+          nodes.push({ level, text, index, x: 0, y: 0, children: [] });
         }
-      });
-      
-      // 计算节点位置
-      const centerX = 300;
-      const centerY = 200;
-      const levelDistance = 120;
-      
-      nodes.forEach((node, i) => {
-        if (node.level === 1) {
-          node.x = centerX;
-          node.y = centerY;
-        } else {
-          const angle = (i / nodes.length) * 2 * Math.PI;
-          node.x = centerX + Math.cos(angle) * levelDistance * (node.level - 1);
-          node.y = centerY + Math.sin(angle) * levelDistance * (node.level - 1);
+        });
+        
+        // 递归布局子节点的辅助函数 - 水平树形布局
+        function layoutChildren(parent, allNodes, startX, centerY, levelDistance) {
+          const directChildren = [];
+          
+          // 找到直接子节点
+          for (let i = parent.index + 1; i < allNodes.length; i++) {
+            const node = allNodes[i];
+            if (node.level === parent.level + 1) {
+              directChildren.push(node);
+            } else if (node.level <= parent.level) {
+              break;
+            }
+          }
+          
+          // 水平树形布局：子节点向右展开，垂直排列
+          const nodeHeight = 60; // 节点间垂直距离
+          const startY = parent.y - ((directChildren.length - 1) * nodeHeight) / 2;
+          
+          directChildren.forEach((child, i) => {
+            child.x = parent.x + levelDistance; // 向右展开
+            child.y = startY + i * nodeHeight; // 垂直排列
+            
+            // 递归布局子节点的子节点
+            layoutChildren(child, allNodes, startX, centerY, levelDistance);
+          });
         }
-      });
+      
+      // 建立父子关系
+      for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i];
+        for (let j = i + 1; j < nodes.length; j++) {
+          const nextNode = nodes[j];
+          if (nextNode.level === node.level + 1) {
+            node.children.push(nextNode);
+          } else if (nextNode.level <= node.level) {
+            break;
+          }
+        }
+      }
+      
+      // 计算节点位置 - 水平树形布局算法
+      const startX = 100; // 从左边开始
+      const centerY = 250;
+      const levelDistance = 150; // 水平间距
+      
+      // 找到根节点（level 1）
+      const rootNodes = nodes.filter(n => n.level === 1);
+      
+      if (rootNodes.length > 0) {
+        const root = rootNodes[0];
+        root.x = startX;
+        root.y = centerY;
+        
+        // 递归布局子节点
+        layoutChildren(root, nodes, startX, centerY, levelDistance);
+      }
+      
+      // 如果没有根节点，使用简单的水平布局
+      if (rootNodes.length === 0) {
+        nodes.forEach((node, i) => {
+          node.x = startX + (node.level - 1) * levelDistance;
+          node.y = 50 + i * 40;
+        });
+      }
       
       // 绘制连接线
       nodes.forEach((node, i) => {
         if (node.level > 1) {
-          const parent = nodes.find(n => n.level === node.level - 1);
+          // 找到真正的父节点
+          let parent = null;
+          for (let j = i - 1; j >= 0; j--) {
+            if (nodes[j].level === node.level - 1) {
+              parent = nodes[j];
+              break;
+            }
+          }
+          
           if (parent) {
             const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
             line.setAttribute('x1', parent.x);
