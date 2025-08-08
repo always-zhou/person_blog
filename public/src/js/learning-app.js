@@ -30,14 +30,13 @@ class ErrorBoundary extends React.Component {
 }
 
 function LearningApp() {
-  try {
-    const [currentView, setCurrentView] = React.useState('list'); // 移除selectedCategory
-    const [selectedPostId, setSelectedPostId] = React.useState(null);
-    const [posts, setPosts] = React.useState([]);
-    const [searchTerm, setSearchTerm] = React.useState('');
-    const [showEditor, setShowEditor] = React.useState(false);
-    const [editingPost, setEditingPost] = React.useState(null);
-    const [blogManager] = React.useState(() => new HybridBlogManager());
+  const [currentView, setCurrentView] = React.useState('list'); // 移除selectedCategory
+  const [selectedPostId, setSelectedPostId] = React.useState(null);
+  const [posts, setPosts] = React.useState([]);
+  const [searchTerm, setSearchTerm] = React.useState('');
+  const [showEditor, setShowEditor] = React.useState(false);
+  const [editingPost, setEditingPost] = React.useState(null);
+  const [blogManager] = React.useState(() => new HybridBlogManager());
 
     // 初始化blogManager并加载文章数据
     React.useEffect(() => {
@@ -228,19 +227,6 @@ function LearningApp() {
         )}
       </div>
     );
-  } catch (error) {
-    console.error('LearningApp error:', error);
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">页面加载失败</h1>
-          <button onClick={() => window.location.reload()} className="px-6 py-2 bg-blue-600 text-white rounded-lg">
-            重新加载
-          </button>
-        </div>
-      </div>
-    );
-  }
 }
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
