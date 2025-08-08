@@ -1,22 +1,24 @@
-# Direct redirects to HTML files (for production)
-/learning /learning.html 200
-/fitness /fitness.html 200
-/life /life.html 200
-/photography /photography.html 200
-/about /about.html 200
-/admin /admin.html 200
+# Cloudflare Pages _redirects file
+# Internal rewrites (200 status) for clean URLs
 
-# Serve HTML files for /public/ paths
-/public/learning /learning.html 200
-/public/fitness /fitness.html 200
-/public/life /life.html 200
-/public/photography /photography.html 200
-/public/about /about.html 200
-/public/admin /admin.html 200
-/public/ /index.html 200
+/learning /learning.html 200!
+/fitness /fitness.html 200!
+/life /life.html 200!
+/photography /photography.html 200!
+/about /about.html 200!
+/admin /admin.html 200!
+
+# Handle /public/ paths
+/public/learning /learning.html 200!
+/public/fitness /fitness.html 200!
+/public/life /life.html 200!
+/public/photography /photography.html 200!
+/public/about /about.html 200!
+/public/admin /admin.html 200!
+/public/ /index.html 200!
 
 # Root path
-/ /index.html 200
+/ /index.html 200!
 
 # 404 fallback
 /* /404.html 404
