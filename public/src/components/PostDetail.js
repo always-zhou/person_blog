@@ -82,8 +82,8 @@ function PostDetail({ postId, onBack, onEdit, onDelete }) {
         }
         });
         
-        // 全局垂直位置分配 - 避免重叠的智能布局
-        function assignGlobalPositions(nodes, levelDistance) {
+        // 水平树形布局 - 紧凑且完整可见
+        function layoutHorizontalTree(nodes, levelDistance) {
           // 按层级分组
           const levelGroups = {};
           nodes.forEach(node => {
@@ -93,40 +93,32 @@ function PostDetail({ postId, onBack, onEdit, onDelete }) {
             levelGroups[node.level].push(node);
           });
           
-          // 为每个节点分配全局垂直位置
-          let globalYPosition = 0;
-          const nodeSpacing = 100; // 节点间的最小垂直间距
+          // 计算每个层级的垂直间距
+          const maxLevel = Math.max(...nodes.map(n => n.level));
+          const containerHeight = 400; // 固定容器高度
+          const nodeHeight = 30;
           
-          // 深度优先遍历，确保父子关系的垂直顺序
-          function assignPositionsDFS(nodeIndex, allNodes) {
-            const node = allNodes[nodeIndex];
-            if (node.positioned) return;
+          // 为每个层级分配节点位置
+          Object.keys(levelGroups).forEach(level => {
+            const levelNodes = levelGroups[level];
+            const levelNum = parseInt(level);
             
-            // 设置水平位置
-            node.x = 150 + (node.level - 1) * levelDistance;
+            // 水平位置：根据层级
+            const x = 50 + (levelNum - 1) * levelDistance;
             
-            // 设置垂直位置
-            node.y = globalYPosition;
-            node.positioned = true;
-            globalYPosition += nodeSpacing;
+            // 垂直位置：在容器内均匀分布
+            const totalHeight = containerHeight - nodeHeight;
+            const spacing = levelNodes.length > 1 ? totalHeight / (levelNodes.length - 1) : 0;
             
-            // 处理直接子节点
-            for (let i = nodeIndex + 1; i < allNodes.length; i++) {
-              const child = allNodes[i];
-              if (child.level === node.level + 1 && !child.positioned) {
-                assignPositionsDFS(i, allNodes);
-              } else if (child.level <= node.level) {
-                break;
+            levelNodes.forEach((node, index) => {
+              node.x = x;
+              if (levelNodes.length === 1) {
+                node.y = containerHeight / 2; // 单个节点居中
+              } else {
+                node.y = nodeHeight / 2 + index * spacing;
               }
-            }
-          }
-          
-          // 从根节点开始分配位置
-          for (let i = 0; i < nodes.length; i++) {
-            if (nodes[i].level === 1 && !nodes[i].positioned) {
-              assignPositionsDFS(i, nodes);
-            }
-          }
+            });
+          });
         }
       
       // 建立父子关系
@@ -142,18 +134,18 @@ function PostDetail({ postId, onBack, onEdit, onDelete }) {
         }
       }
       
-      // 使用全局位置分配算法 - 避免重叠
-      const levelDistance = 350; // 水平层级间距
+      // 使用水平树形布局
+      const levelDistance = 200; // 水平层级间距
       
       // 分配所有节点的位置
-      assignGlobalPositions(nodes, levelDistance);
+      layoutHorizontalTree(nodes, levelDistance);
       
       // 如果没有节点，直接返回
       if (nodes.length === 0) {
         return;
       }
       
-      // 绘制连接线
+      // 绘制曲线连接线
       nodes.forEach((node, i) => {
         if (node.level > 1) {
           // 找到真正的父节点
@@ -166,14 +158,15 @@ function PostDetail({ postId, onBack, onEdit, onDelete }) {
           }
           
           if (parent) {
-            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-            line.setAttribute('x1', parent.x);
-            line.setAttribute('y1', parent.y);
-            line.setAttribute('x2', node.x);
-            line.setAttribute('y2', node.y);
-            line.setAttribute('stroke', '#60a5fa');
-            line.setAttribute('stroke-width', '2');
-            svg.appendChild(line);
+            // 使用SVG路径绘制贝塞尔曲线
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            const midX = (parent.x + node.x) / 2;
+            const pathData = `M ${parent.x} ${parent.y} Q ${midX} ${parent.y} ${node.x} ${node.y}`;
+            path.setAttribute('d', pathData);
+            path.setAttribute('stroke', '#60a5fa');
+            path.setAttribute('stroke-width', '2');
+            path.setAttribute('fill', 'none');
+            svg.appendChild(path);
           }
         }
       });
@@ -207,19 +200,19 @@ function PostDetail({ postId, onBack, onEdit, onDelete }) {
         svg.appendChild(g);
       });
       
-      // 动态计算SVG尺寸
+      // 动态计算SVG尺寸 - 适配水平布局
       if (nodes.length > 0) {
-        const maxX = Math.max(...nodes.map(n => n.x + Math.max(n.text.length * 10, 100)));
-        const maxY = Math.max(...nodes.map(n => n.y + 40));
-        const minY = Math.min(...nodes.map(n => n.y - 40));
-        const minX = Math.min(...nodes.map(n => n.x - Math.max(n.text.length * 5, 50)));
+        const maxLevel = Math.max(...nodes.map(n => n.level));
+        const maxTextWidth = Math.max(...nodes.map(n => n.text.length * 8 + 40));
         
-        const width = Math.max(1500, maxX - minX + 200);
-        const height = Math.max(600, maxY - minY + 200);
+        // 水平布局：宽度基于层级数，高度固定
+        const width = Math.max(800, 50 + maxLevel * 200 + maxTextWidth);
+        const height = 450; // 固定高度，稍大于容器高度
         
-        svg.setAttribute('viewBox', `${minX - 100} ${minY - 100} ${width} ${height}`);
-        svg.style.width = `${width}px`;
-        svg.style.height = `${height}px`;
+        svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        svg.style.width = '100%';
+        svg.style.height = '400px';
+        svg.style.maxWidth = `${width}px`;
       }
     };
 
@@ -232,7 +225,8 @@ function PostDetail({ postId, onBack, onEdit, onDelete }) {
           </div>
           <div 
             ref={markmapRef}
-            className="w-full h-96 bg-white/10 rounded-lg overflow-hidden"
+            className="w-full h-96 bg-white/10 rounded-lg overflow-auto border border-white/20"
+            style={{ height: '400px' }}
           />
         </div>
       );
