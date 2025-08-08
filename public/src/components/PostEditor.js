@@ -42,8 +42,8 @@ const MindMapEditor = React.memo(({ mindMapData, setMindMapData }) => {
       // 创建 SVG 元素
       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       svg.style.width = '100%';
-      svg.style.height = '500px';
-      svg.setAttribute('viewBox', '0 0 1000 500'); // 增加视图宽度以适应水平布局
+      svg.style.height = 'auto';
+      svg.style.minHeight = '400px';
       markmapRef.current.appendChild(svg);
       
       // 简单的思维导图渲染（模拟 markmap 效果）
@@ -85,8 +85,8 @@ const MindMapEditor = React.memo(({ mindMapData, setMindMapData }) => {
     
     // 计算节点位置 - 水平树形布局算法
     const startX = 100; // 从左边开始
-    const centerY = 200;
-    const levelDistance = 150; // 增加水平间距
+    const centerY = 300;
+    const levelDistance = 200; // 增加水平间距
     
     // 找到根节点（level 1）
     const rootNodes = nodes.filter(n => n.level === 1);
@@ -166,6 +166,18 @@ const MindMapEditor = React.memo(({ mindMapData, setMindMapData }) => {
       g.appendChild(text);
       svg.appendChild(g);
     });
+    
+    // 动态计算SVG尺寸
+    if (nodes.length > 0) {
+      const maxX = Math.max(...nodes.map(n => n.x + Math.max(n.text.length * 8 + 20, 80)));
+      const maxY = Math.max(...nodes.map(n => n.y + 30));
+      const minY = Math.min(...nodes.map(n => n.y - 30));
+      const width = Math.max(1000, maxX + 100);
+      const height = Math.max(400, maxY - minY + 100);
+      
+      svg.setAttribute('viewBox', `0 ${minY - 50} ${width} ${height}`);
+      svg.style.height = `${Math.min(600, height)}px`;
+    }
   };
   
   // 递归布局子节点的辅助函数 - 水平树形布局
@@ -183,7 +195,7 @@ const MindMapEditor = React.memo(({ mindMapData, setMindMapData }) => {
     }
     
     // 水平树形布局：子节点向右展开，垂直排列
-    const nodeHeight = 60; // 节点间垂直距离
+    const nodeHeight = 80; // 增加节点间垂直距离
     const startY = parent.y - ((directChildren.length - 1) * nodeHeight) / 2;
     
     directChildren.forEach((child, i) => {

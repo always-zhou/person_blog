@@ -43,8 +43,8 @@ function PostDetail({ postId, onBack, onEdit, onDelete }) {
         // 创建 SVG 元素
         const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.style.width = '100%';
-        svg.style.height = '500px';
-        svg.setAttribute('viewBox', '0 0 1000 500');
+        svg.style.height = 'auto';
+        svg.style.minHeight = '400px';
         markmapRef.current.appendChild(svg);
         
         // 渲染思维导图
@@ -86,7 +86,7 @@ function PostDetail({ postId, onBack, onEdit, onDelete }) {
           }
           
           // 水平树形布局：子节点向右展开，垂直排列
-          const nodeHeight = 60; // 节点间垂直距离
+          const nodeHeight = 80; // 增加节点间垂直距离
           const startY = parent.y - ((directChildren.length - 1) * nodeHeight) / 2;
           
           directChildren.forEach((child, i) => {
@@ -113,8 +113,8 @@ function PostDetail({ postId, onBack, onEdit, onDelete }) {
       
       // 计算节点位置 - 水平树形布局算法
       const startX = 100; // 从左边开始
-      const centerY = 250;
-      const levelDistance = 150; // 水平间距
+      const centerY = 300;
+      const levelDistance = 200; // 增加水平间距
       
       // 找到根节点（level 1）
       const rootNodes = nodes.filter(n => n.level === 1);
@@ -189,6 +189,18 @@ function PostDetail({ postId, onBack, onEdit, onDelete }) {
         g.appendChild(text);
         svg.appendChild(g);
       });
+      
+      // 动态计算SVG尺寸
+      if (nodes.length > 0) {
+        const maxX = Math.max(...nodes.map(n => n.x + n.text.length * 8 + 20));
+        const maxY = Math.max(...nodes.map(n => n.y + 30));
+        const minY = Math.min(...nodes.map(n => n.y - 30));
+        const width = Math.max(1000, maxX + 100);
+        const height = Math.max(400, maxY - minY + 100);
+        
+        svg.setAttribute('viewBox', `0 ${minY - 50} ${width} ${height}`);
+        svg.style.height = `${Math.min(600, height)}px`;
+      }
     };
 
     // 如果是新的 markdown 格式
