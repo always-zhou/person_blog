@@ -187,26 +187,7 @@ function LearningApp() {
 
 
 
-            {/* 调试信息 */}
-            <div className="mb-6 p-4 bg-red-900/20 border border-red-500/30 rounded-lg">
-              <h3 className="text-red-400 font-bold mb-2">调试信息</h3>
-              <div className="text-sm text-red-300">
-                <p>文章数量: {posts.length}</p>
-                <p>搜索词: "{searchTerm}"</p>
-                <p>当前视图: {currentView}</p>
-                <p>选中文章ID: {selectedPostId}</p>
-                {posts.length > 0 && (
-                  <div>
-                    <p>文章列表:</p>
-                    <ul className="ml-4">
-                      {posts.map(p => (
-                        <li key={p.id}>ID: {p.id}, 标题: {p.title}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            </div>
+
 
             {/* 文章列表 */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
