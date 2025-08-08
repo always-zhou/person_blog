@@ -42,7 +42,8 @@ const MindMapEditor = React.memo(({ mindMapData, setMindMapData }) => {
       // 创建 SVG 元素
       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       svg.style.width = '100%';
-      svg.style.height = '400px';
+      svg.style.height = '500px';
+      svg.setAttribute('viewBox', '0 0 1000 500'); // 增加视图宽度以适应水平布局
       markmapRef.current.appendChild(svg);
       
       // 简单的思维导图渲染（模拟 markmap 效果）
@@ -82,27 +83,27 @@ const MindMapEditor = React.memo(({ mindMapData, setMindMapData }) => {
       }
     }
     
-    // 计算节点位置 - 改进的布局算法
-    const centerX = 400;
+    // 计算节点位置 - 水平树形布局算法
+    const startX = 100; // 从左边开始
     const centerY = 200;
-    const levelDistance = 120;
+    const levelDistance = 150; // 增加水平间距
     
     // 找到根节点（level 1）
     const rootNodes = nodes.filter(n => n.level === 1);
     
     if (rootNodes.length > 0) {
       const root = rootNodes[0];
-      root.x = centerX;
+      root.x = startX;
       root.y = centerY;
       
       // 递归布局子节点
-      layoutChildren(root, nodes, centerX, centerY, levelDistance);
+      layoutChildren(root, nodes, startX, centerY, levelDistance);
     }
     
-    // 如果没有根节点，使用简单的垂直布局
+    // 如果没有根节点，使用简单的水平布局
     if (rootNodes.length === 0) {
       nodes.forEach((node, i) => {
-        node.x = centerX + (node.level - 1) * levelDistance;
+        node.x = startX + (node.level - 1) * levelDistance;
         node.y = 50 + i * 40;
       });
     }
@@ -167,7 +168,7 @@ const MindMapEditor = React.memo(({ mindMapData, setMindMapData }) => {
     });
   };
   
-  // 递归布局子节点的辅助函数
+  // 递归布局子节点的辅助函数 - 水平树形布局
   const layoutChildren = (parent, allNodes, centerX, centerY, levelDistance) => {
     const directChildren = [];
     
@@ -181,12 +182,13 @@ const MindMapEditor = React.memo(({ mindMapData, setMindMapData }) => {
       }
     }
     
-    // 布局直接子节点
+    // 水平树形布局：子节点向右展开，垂直排列
+    const nodeHeight = 60; // 节点间垂直距离
+    const startY = parent.y - ((directChildren.length - 1) * nodeHeight) / 2;
+    
     directChildren.forEach((child, i) => {
-      const angle = (i / Math.max(directChildren.length - 1, 1)) * Math.PI - Math.PI / 2;
-      const distance = levelDistance;
-      child.x = parent.x + Math.cos(angle) * distance;
-      child.y = parent.y + Math.sin(angle) * distance;
+      child.x = parent.x + levelDistance; // 向右展开
+      child.y = startY + i * nodeHeight; // 垂直排列
       
       // 递归布局子节点的子节点
       layoutChildren(child, allNodes, centerX, centerY, levelDistance);
