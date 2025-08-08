@@ -113,8 +113,11 @@ function LearningApp() {
     };
 
     const handleViewPost = (postId) => {
+      console.log('handleViewPost called with postId:', postId);
+      console.log('Current posts:', posts);
       setSelectedPostId(postId);
       setCurrentView('detail');
+      console.log('View changed to detail, selectedPostId:', postId);
     };
 
     const handleBackToList = () => {
