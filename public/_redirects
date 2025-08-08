@@ -1,4 +1,4 @@
-# Direct redirects to /public/ URLs
+# Direct redirects to /public/ URLs (for production)
 /learning https://blog.awlayswm.com/public/learning 302
 /fitness https://blog.awlayswm.com/public/fitness 302
 /life https://blog.awlayswm.com/public/life 302
