@@ -2,13 +2,15 @@
 class SiteAuthManager {
   constructor() {
     this.checkInterval = null;
-    this.init();
   }
 
   // 初始化
-  init() {
+  async init() {
+    // 先隐藏页面内容，等待认证完成
+    this.hidePageContent();
+    
     // 检查当前页面是否需要认证
-    this.checkAuthStatus();
+    await this.checkAuthStatus();
     
     // 定期检查认证状态（每5分钟）
     this.checkInterval = setInterval(() => {
@@ -19,25 +21,102 @@ class SiteAuthManager {
   // 检查认证状态
   async checkAuthStatus() {
     try {
+      // 检查配置是否禁用认证
+      if (window.BLOG_CONFIG && window.BLOG_CONFIG.DISABLE_AUTH) {
+        return;
+      }
+      
       // 在本地开发环境中跳过API调用
       if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         return;
       }
       
-      // 尝试访问健康检查接口来验证认证状态
-      const response = await fetch('/api/health', {
-        credentials: 'include'
-      });
-      
-      if (response.status === 401) {
-        // 未认证，重定向到登录页面
-        this.redirectToLogin();
+      // 使用 AuthManager 检查认证状态
+      if (window.authManager) {
+        const isAuthenticated = await window.authManager.checkAuth();
+        if (!isAuthenticated) {
+          // 认证失败，用户取消了认证，隐藏页面内容
+          this.hidePageContent();
+          return;
+        } else {
+          // 认证成功，显示页面内容
+          this.showPageContent();
+        }
       }
     } catch (error) {
       console.warn('Auth check failed:', error);
     }
   }
 
+  // 隐藏页面内容
+  hidePageContent() {
+    // 隐藏主要内容
+    const root = document.getElementById('root');
+    if (root) {
+      root.style.display = 'none';
+    }
+    
+    // 显示认证提示
+    this.showAuthPrompt();
+  }
+  
+  // 显示页面内容
+  showPageContent() {
+    const root = document.getElementById('root');
+    if (root) {
+      root.style.display = 'block';
+    }
+    
+    // 隐藏认证提示
+    this.hideAuthPrompt();
+  }
+  
+  // 显示认证提示
+  showAuthPrompt() {
+    // 检查是否已经有提示
+    if (document.getElementById('auth-prompt')) {
+      return;
+    }
+    
+    const promptHTML = `
+      <div id="auth-prompt" class="fixed inset-0 bg-gray-900 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-8 max-w-md mx-4 text-center">
+          <div class="mb-6">
+            <div class="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+              <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m0 0v2m0-2h2m-2 0H10m2-5V9m0 0V7m0 2h2m-2 0H10"></path>
+              </svg>
+            </div>
+            <h2 class="text-xl font-bold text-gray-800 mb-2">需要认证</h2>
+            <p class="text-gray-600">您需要通过密码验证才能访问此网站</p>
+          </div>
+          <button id="retry-auth-btn" class="w-full px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">
+            重新认证
+          </button>
+        </div>
+      </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', promptHTML);
+    
+    // 添加重新认证按钮事件
+    const retryBtn = document.getElementById('retry-auth-btn');
+    if (retryBtn) {
+      retryBtn.addEventListener('click', () => {
+        this.hideAuthPrompt();
+        this.checkAuthStatus();
+      });
+    }
+  }
+  
+  // 隐藏认证提示
+  hideAuthPrompt() {
+    const prompt = document.getElementById('auth-prompt');
+    if (prompt) {
+      prompt.remove();
+    }
+  }
+  
   // 重定向到登录页面
   redirectToLogin() {
     // 如果当前不在登录页面，则重定向
@@ -49,23 +128,20 @@ class SiteAuthManager {
   // 退出登录
   async logout() {
     try {
-      // 在本地开发环境中跳过API调用
-      if (!(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-        await fetch('/api/logout', {
-          method: 'POST',
-          credentials: 'include'
-        });
+      // 使用 AuthManager 进行登出
+      if (window.authManager) {
+        window.authManager.logout();
+      } else {
+        // 清除本地存储
+        sessionStorage.clear();
+        localStorage.removeItem('blog_password');
+        
+        // 重新加载页面
+        window.location.reload();
       }
-      
-      // 清除本地存储
-      sessionStorage.clear();
-      localStorage.removeItem('blog_password');
-      
-      // 重新加载页面
-      window.location.reload();
     } catch (error) {
       console.error('Logout failed:', error);
-      // 即使API调用失败，也要重新加载页面
+      // 即使出错，也要重新加载页面
       window.location.reload();
     }
   }
@@ -139,13 +215,16 @@ if (!window.location.pathname.includes('/admin.html')) {
   
   // 页面加载完成后初始化
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
       siteAuthManager = new SiteAuthManager();
+      await siteAuthManager.init();
       siteAuthManager.addLogoutButton();
     });
   } else {
     siteAuthManager = new SiteAuthManager();
-    siteAuthManager.addLogoutButton();
+    siteAuthManager.init().then(() => {
+      siteAuthManager.addLogoutButton();
+    });
   }
   
   // 页面卸载时清理

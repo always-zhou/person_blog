@@ -195,15 +195,19 @@ class APIClient {
   // 检查API是否可用
   async checkAPIHealth() {
     if (!this.baseURL) {
-      return false;
+      return { status: 'error', message: 'No API URL configured' };
     }
     
     try {
-      await this.request('/api/stats');
-      return true;
+      const result = await this.request('/api/stats');
+      return { status: 'ok', data: result };
     } catch (error) {
       console.error('API health check failed:', error);
-      return false;
+      // 检查是否是认证错误
+      if (error.message && error.message.includes('401')) {
+        throw error; // 重新抛出认证错误
+      }
+      return { status: 'error', message: error.message };
     }
   }
 
