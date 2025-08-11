@@ -393,6 +393,45 @@ function PostDetail({ postId, onBack, onEdit, onDelete }) {
               </div>
             </header>
             
+            {/* 摄影作品展示 */}
+            {post.category === '摄影' && post.photographyData?.images?.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-2xl font-bold text-white mb-4">照片展示</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                  {post.photographyData.images.map((imageUrl, index) => (
+                    <div key={index} className="group cursor-pointer">
+                      <img
+                        src={imageUrl}
+                        alt={`照片 ${index + 1}`}
+                        className="w-full h-64 object-cover rounded-lg border border-white/20 group-hover:scale-105 transition-transform duration-300"
+                        onClick={() => {
+                          // 简单的图片查看功能
+                          const modal = document.createElement('div');
+                          modal.className = 'fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4';
+                          modal.innerHTML = `
+                            <div class="relative max-w-4xl max-h-full">
+                              <img src="${imageUrl}" alt="照片 ${index + 1}" class="max-w-full max-h-full object-contain rounded-lg" />
+                              <button class="absolute top-4 right-4 text-white text-2xl bg-black/50 rounded-full w-10 h-10 flex items-center justify-center hover:bg-black/70" onclick="this.parentElement.parentElement.remove()">×</button>
+                            </div>
+                          `;
+                          modal.onclick = (e) => {
+                            if (e.target === modal) modal.remove();
+                          };
+                          document.body.appendChild(modal);
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+                {post.photographyData.description && (
+                  <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20 mb-6">
+                    <h4 className="text-lg font-semibold text-white mb-2">照片描述</h4>
+                    <p className="text-white/80 leading-relaxed">{post.photographyData.description}</p>
+                  </div>
+                )}
+              </div>
+            )}
+            
             {/* 文章内容 */}
             <div className="prose prose-invert max-w-none">
               {post.contentType === 'mindmap' ? (

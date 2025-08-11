@@ -271,6 +271,97 @@ const MindMapEditor = React.memo(({ mindMapData, setMindMapData }) => {
             />
           </div>
         )}
+        
+        {/* 摄影专用字段 */}
+        {(formData.category === '摄影' || fixedCategory === '摄影') && (
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-lg border border-purple-200">
+            <h3 className="text-lg font-semibold text-purple-800 mb-4 flex items-center">
+              <span className="icon-camera mr-2"></span>
+              照片上传
+            </h3>
+            
+            {/* 图片上传区域 */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                选择照片
+              </label>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-400 transition-colors">
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files);
+                    const imageUrls = files.map(file => URL.createObjectURL(file));
+                    setPhotographyData({
+                      ...photographyData,
+                      images: [...photographyData.images, ...imageUrls]
+                    });
+                  }}
+                  className="hidden"
+                  id="photo-upload"
+                />
+                <label htmlFor="photo-upload" className="cursor-pointer">
+                  <div className="text-gray-500">
+                    <span className="icon-upload text-3xl mb-2 block"></span>
+                    <p className="text-lg">点击选择照片或拖拽到此处</p>
+                    <p className="text-sm text-gray-400 mt-1">支持 JPG、PNG、GIF 格式</p>
+                  </div>
+                </label>
+              </div>
+            </div>
+            
+            {/* 图片预览网格 */}
+            {photographyData.images.length > 0 && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  已选择的照片 ({photographyData.images.length})
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {photographyData.images.map((imageUrl, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={imageUrl}
+                        alt={`照片 ${index + 1}`}
+                        className="w-full h-24 object-cover rounded-lg border border-gray-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newImages = photographyData.images.filter((_, i) => i !== index);
+                          setPhotographyData({
+                            ...photographyData,
+                            images: newImages
+                          });
+                        }}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* 照片描述 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                照片描述
+              </label>
+              <textarea
+                value={photographyData.description}
+                onChange={(e) => setPhotographyData({
+                  ...photographyData,
+                  description: e.target.value
+                })}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                rows="3"
+                placeholder="描述这些照片的拍摄背景、故事或感受..."
+              />
+            </div>
+          </div>
+        )}
       </div>
       
       {/* 使用说明 */}
@@ -317,6 +408,12 @@ function PostEditor({ post, onSave, onCancel, fixedCategory }) {
     bodyFat: post?.fitnessData?.bodyFat || 0,
     muscleMass: post?.fitnessData?.muscleMass || 0
   });
+  
+  // 添加摄影专用状态
+  const [photographyData, setPhotographyData] = React.useState({
+    images: post?.photographyData?.images || [],
+    description: post?.photographyData?.description || ''
+  });
 
   // 验证表单
   const validateForm = () => {
@@ -359,6 +456,11 @@ function PostEditor({ post, onSave, onCancel, fixedCategory }) {
     // 如果是健身分类，添加健身数据
     if (formData.category === '健身') {
       postData.fitnessData = fitnessData;
+    }
+    
+    // 如果是摄影分类，添加摄影数据
+    if (formData.category === '摄影') {
+      postData.photographyData = photographyData;
     }
 
     try {

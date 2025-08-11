@@ -25,26 +25,48 @@ function PostCard({ post, onClick, showActions = false, onEdit, onDelete }) {
 
   return (
     <div 
-      className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 transform hover:scale-105 cursor-pointer group"
+      className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:bg-white/20 transition-all duration-300 cursor-pointer group shadow-lg hover:shadow-xl transform hover:-translate-y-1"
       onClick={handleClick}
     >
       <div>
         {/* 分类标签 */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-start justify-between mb-4">
           <span className={`px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r ${getCategoryColor(post.category)} text-white`}>
             {post.category}
           </span>
           <span className="text-white/60 text-sm">{post.readTime}</span>
         </div>
 
+        {/* 摄影作品预览 */}
+        {post.category === '摄影' && post.photographyData?.images?.length > 0 && (
+          <div className="mb-4">
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              {post.photographyData.images.slice(0, 4).map((imageUrl, index) => (
+                <div key={index} className="relative">
+                  <img
+                    src={imageUrl}
+                    alt={`照片 ${index + 1}`}
+                    className="w-full h-20 object-cover rounded-lg border border-white/20"
+                  />
+                  {index === 3 && post.photographyData.images.length > 4 && (
+                    <div className="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center">
+                      <span className="text-white text-sm font-medium">+{post.photographyData.images.length - 4}</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* 标题 */}
-        <h3 className="text-xl font-bold text-white mb-3 group-hover:text-purple-300 transition-colors">
+        <h3 className="text-xl font-bold text-white mb-3 group-hover:text-yellow-300 transition-colors line-clamp-2">
           {post.title}
         </h3>
 
         {/* 摘要 */}
-        <p className="text-white/80 mb-4 line-clamp-3">
-          {post.summary}
+        <p className="text-white/80 mb-4 line-clamp-3 leading-relaxed">
+          {post.category === '摄影' && post.photographyData?.description ? post.photographyData.description : post.summary}
         </p>
 
         {/* 健身数据显示 */}
