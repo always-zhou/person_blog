@@ -19,6 +19,11 @@ class SiteAuthManager {
   // 检查认证状态
   async checkAuthStatus() {
     try {
+      // 在本地开发环境中跳过API调用
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        return;
+      }
+      
       // 尝试访问健康检查接口来验证认证状态
       const response = await fetch('/api/health', {
         credentials: 'include'
@@ -44,10 +49,13 @@ class SiteAuthManager {
   // 退出登录
   async logout() {
     try {
-      await fetch('/api/logout', {
-        method: 'POST',
-        credentials: 'include'
-      });
+      // 在本地开发环境中跳过API调用
+      if (!(window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        await fetch('/api/logout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+      }
       
       // 清除本地存储
       sessionStorage.clear();
