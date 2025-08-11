@@ -358,7 +358,7 @@ function PostEditor({ post, onSave, onCancel, fixedCategory }) {
     
     // 如果是健身分类，添加健身数据
     if (formData.category === '健身') {
-      Object.assign(postData, fitnessData);
+      postData.fitnessData = fitnessData;
     }
 
     try {

@@ -31,6 +31,7 @@ class ErrorBoundary extends React.Component {
 
 function FitnessApp() {
   try {
+    console.log('FitnessApp component initializing...');
     const [currentView, setCurrentView] = React.useState('list');
     const [selectedPostId, setSelectedPostId] = React.useState(null);
     const [posts, setPosts] = React.useState([]);
@@ -68,7 +69,10 @@ function FitnessApp() {
 
     // 计算健身统计数据
     const calculateStats = (posts) => {
-      const fitnessRecords = posts.filter(post => post.fitnessData);
+      console.log('calculateStats called with posts:', posts);
+      const fitnessRecords = posts.filter(post => post.category === '健身' && post.fitnessData);
+      console.log('fitnessRecords:', fitnessRecords);
+      console.log('All fitness posts:', posts.filter(post => post.category === '健身'));
       const totalWorkouts = fitnessRecords.length;
       
       if (totalWorkouts === 0) {
@@ -146,6 +150,7 @@ function FitnessApp() {
     const handleSavePost = async (postData) => {
       try {
         const fitnessPostData = { ...postData, category: '健身' };
+        console.log('Saving fitness post data:', fitnessPostData);
         
         if (editingPost) {
           await blogManager.updatePost(editingPost.id, fitnessPostData);
@@ -154,6 +159,7 @@ function FitnessApp() {
         }
         setShowEditor(false);
         setEditingPost(null);
+        console.log('About to reload posts...');
         await loadPosts();
       } catch (error) {
         console.error('保存文章失败:', error);
@@ -397,9 +403,13 @@ function FitnessApp() {
   }
 }
 
+console.log('fitness-app.js loaded successfully');
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <ErrorBoundary>
     <FitnessApp />
   </ErrorBoundary>
 );
+
+console.log('FitnessApp rendered');

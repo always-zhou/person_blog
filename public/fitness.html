@@ -46,6 +46,13 @@
 <body>
     <div id="root"></div>
     
+    <script>
+        console.log('fitness.html page loaded');
+        window.addEventListener('error', function(e) {
+            console.error('JavaScript error:', e.error);
+        });
+    </script>
+    
     <!-- 组件脚本 -->
     <script src="src/js/config.js"></script>
     <script src="src/js/cloudflare-kv-manager.js"></script>
