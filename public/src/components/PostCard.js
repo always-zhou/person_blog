@@ -51,10 +51,10 @@ function PostCard({ post, onClick, showActions = false, onEdit, onDelete }) {
         {post.category === '健身' && post.fitnessData && (
           <div className="bg-white/10 rounded-lg p-3 mb-4 border border-white/20">
             <div className="grid grid-cols-2 gap-2 text-sm">
-              {post.fitnessData.exerciseType && (
+              {post.fitnessData.workoutType && (
                 <div className="text-white/90">
                   <span className="text-white/60">运动：</span>
-                  {post.fitnessData.exerciseType}
+                  {post.fitnessData.workoutType}
                 </div>
               )}
               {post.fitnessData.duration && (

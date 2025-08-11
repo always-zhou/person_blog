@@ -66,17 +66,17 @@ class BlogManager {
     // 为健身分类添加专门的记录字段
     if (post.category === '健身') {
       newPost.fitnessData = {
-        workoutType: post.workoutType || '', // 运动类型
-        duration: post.duration || 0, // 运动时长(分钟)
-        intensity: post.intensity || '中等', // 强度等级
-        bodyWeight: post.bodyWeight || 0, // 体重记录
-        exercises: post.exercises || [], // 具体运动项目
-        mood: post.mood || '良好', // 运动后心情
-        notes: post.notes || '', // 额外备注
-        calories: post.calories || 0, // 消耗卡路里
-        heartRate: post.heartRate || 0, // 平均心率
-        bodyFat: post.bodyFat || 0, // 体脂率
-        muscleMass: post.muscleMass || 0 // 肌肉量
+        workoutType: post.fitnessData?.workoutType || post.workoutType || '', // 运动类型
+        duration: post.fitnessData?.duration || post.duration || 0, // 运动时长(分钟)
+        intensity: post.fitnessData?.intensity || post.intensity || '中等', // 强度等级
+        bodyWeight: post.fitnessData?.bodyWeight || post.bodyWeight || 0, // 体重记录
+        exercises: post.fitnessData?.exercises || post.exercises || [], // 具体运动项目
+        mood: post.fitnessData?.mood || post.mood || '良好', // 运动后心情
+        notes: post.fitnessData?.notes || post.notes || '', // 额外备注
+        calories: post.fitnessData?.calories || post.calories || 0, // 消耗卡路里
+        heartRate: post.fitnessData?.heartRate || post.heartRate || 0, // 平均心率
+        bodyFat: post.fitnessData?.bodyFat || post.bodyFat || 0, // 体脂率
+        muscleMass: post.fitnessData?.muscleMass || post.muscleMass || 0 // 肌肉量
       };
     }
     
@@ -89,11 +89,30 @@ class BlogManager {
   updatePost(id, updatedPost) {
     const index = this.posts.findIndex(post => post.id === id);
     if (index !== -1) {
-      this.posts[index] = {
+      const updated = {
         ...this.posts[index],
         ...updatedPost,
         updatedAt: new Date().toISOString()
       };
+      
+      // 为健身分类更新专门的记录字段
+      if (updatedPost.category === '健身') {
+        updated.fitnessData = {
+          workoutType: updatedPost.fitnessData?.workoutType || updatedPost.workoutType || '', 
+          duration: updatedPost.fitnessData?.duration || updatedPost.duration || 0, 
+          intensity: updatedPost.fitnessData?.intensity || updatedPost.intensity || '中等', 
+          bodyWeight: updatedPost.fitnessData?.bodyWeight || updatedPost.bodyWeight || 0, 
+          exercises: updatedPost.fitnessData?.exercises || updatedPost.exercises || [], 
+          mood: updatedPost.fitnessData?.mood || updatedPost.mood || '良好', 
+          notes: updatedPost.fitnessData?.notes || updatedPost.notes || '', 
+          calories: updatedPost.fitnessData?.calories || updatedPost.calories || 0, 
+          heartRate: updatedPost.fitnessData?.heartRate || updatedPost.heartRate || 0, 
+          bodyFat: updatedPost.fitnessData?.bodyFat || updatedPost.bodyFat || 0, 
+          muscleMass: updatedPost.fitnessData?.muscleMass || updatedPost.muscleMass || 0 
+        };
+      }
+      
+      this.posts[index] = updated;
       this.savePosts();
       return this.posts[index];
     }
