@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>摄影编辑器测试</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/lucide-static@0.516.0/font/lucide.css" rel="stylesheet">
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script src="src/js/config.js"></script>
+    <script src="src/js/api-client.js"></script>
+    <script src="src/js/blog-manager.js"></script>
+    <script src="src/components/Header.js" type="text/babel"></script>
+    <script src="src/components/Footer.js" type="text/babel"></script>
+    <script src="src/components/PostEditor.js" type="text/babel"></script>
+    
+    <script type="text/babel">
+        function TestApp() {
+            const [showEditor, setShowEditor] = React.useState(false);
+            
+            const handleSave = (postData) => {
+                console.log('保存的数据:', postData);
+                alert('数据已保存到控制台，请查看');
+                setShowEditor(false);
+            };
+            
+            return (
+                <div className="min-h-screen bg-gray-100 p-8">
+                    <div className="max-w-4xl mx-auto">
+                        <h1 className="text-3xl font-bold mb-8">摄影编辑器测试</h1>
+                        
+                        <button
+                            onClick={() => setShowEditor(true)}
+                            className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium"
+                        >
+                            打开摄影编辑器
+                        </button>
+                        
+                        <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <h2 className="font-semibold mb-2">测试说明：</h2>
+                            <ul className="list-disc list-inside space-y-1 text-sm">
+                                <li>点击"打开摄影编辑器"按钮</li>
+                                <li>应该看到照片上传区域（紫色背景）</li>
+                                <li>可以选择多张图片并预览</li>
+                                <li>填写照片描述</li>
+                                <li>点击保存查看控制台输出</li>
+                            </ul>
+                        </div>
+                        
+                        {showEditor && (
+                            <PostEditor
+                                post={null}
+                                onSave={handleSave}
+                                onCancel={() => setShowEditor(false)}
+                                fixedCategory="摄影"
+                            />
+                        )}
+                    </div>
+                </div>
+            );
+        }
+        
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<TestApp />);
+    </script>
+</body>
+</html>
