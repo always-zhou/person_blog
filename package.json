@@ -4,14 +4,11 @@
   "description": "一个现代化的个人博客系统，支持多分类文章管理、本地存储和云端同步",
   "main": "public/index.html",
   "scripts": {
-    "start": "python3 -m http.server 8002",
-    "dev": "copy deployment\\worker.js public\\_worker.js && wrangler pages dev public --kv=BLOG_KV",
+    "start": "python3 -m http.server 8000",
+    "dev": "wrangler pages dev public",
     "build": "echo 'No build step required for this static site'",
-    "deploy:cloudflare": "cd deployment && wrangler deploy",
-    "deploy:docker": "docker-compose up --build",
-    "test": "echo 'No tests specified yet'",
-    "lint": "echo 'No linting configured yet'",
-    "debug": "open http://localhost:8002/public/comprehensive-debug.html"
+    "deploy": "wrangler pages deploy public --project-name person-blog",
+    "debug": "open http://localhost:8000/"
   },
   "keywords": [
     "blog",
