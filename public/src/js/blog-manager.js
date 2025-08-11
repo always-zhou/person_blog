@@ -62,6 +62,24 @@ class BlogManager {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
+    
+    // 为健身分类添加专门的记录字段
+    if (post.category === '健身') {
+      newPost.fitnessData = {
+        workoutType: post.workoutType || '', // 运动类型
+        duration: post.duration || 0, // 运动时长(分钟)
+        intensity: post.intensity || '中等', // 强度等级
+        bodyWeight: post.bodyWeight || 0, // 体重记录
+        exercises: post.exercises || [], // 具体运动项目
+        mood: post.mood || '良好', // 运动后心情
+        notes: post.notes || '', // 额外备注
+        calories: post.calories || 0, // 消耗卡路里
+        heartRate: post.heartRate || 0, // 平均心率
+        bodyFat: post.bodyFat || 0, // 体脂率
+        muscleMass: post.muscleMass || 0 // 肌肉量
+      };
+    }
+    
     this.posts.unshift(newPost);
     this.savePosts();
     return newPost;

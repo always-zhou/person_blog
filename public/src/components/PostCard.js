@@ -47,6 +47,50 @@ function PostCard({ post, onClick, showActions = false, onEdit, onDelete }) {
           {post.summary}
         </p>
 
+        {/* 健身数据显示 */}
+        {post.category === '健身' && post.fitnessData && (
+          <div className="bg-white/10 rounded-lg p-3 mb-4 border border-white/20">
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              {post.fitnessData.exerciseType && (
+                <div className="text-white/90">
+                  <span className="text-white/60">运动：</span>
+                  {post.fitnessData.exerciseType}
+                </div>
+              )}
+              {post.fitnessData.duration && (
+                <div className="text-white/90">
+                  <span className="text-white/60">时长：</span>
+                  {post.fitnessData.duration}分钟
+                </div>
+              )}
+              {post.fitnessData.calories && (
+                <div className="text-white/90">
+                  <span className="text-white/60">卡路里：</span>
+                  {post.fitnessData.calories}kcal
+                </div>
+              )}
+              {post.fitnessData.intensity && (
+                <div className="text-white/90">
+                  <span className="text-white/60">强度：</span>
+                  {post.fitnessData.intensity}
+                </div>
+              )}
+              {post.fitnessData.weight && (
+                <div className="text-white/90">
+                  <span className="text-white/60">体重：</span>
+                  {post.fitnessData.weight}kg
+                </div>
+              )}
+              {post.fitnessData.heartRate && (
+                <div className="text-white/90">
+                  <span className="text-white/60">心率：</span>
+                  {post.fitnessData.heartRate}bpm
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* 标签 */}
         <div className="flex flex-wrap gap-2 mb-4">
           {post.tags.slice(0, 3).map(tag => (

@@ -302,6 +302,21 @@ function PostEditor({ post, onSave, onCancel, fixedCategory }) {
   const [mindMapData, setMindMapData] = React.useState(
     post?.mindMapData || { markdown: '' }
   );
+  
+  // 添加健身专用状态
+  const [fitnessData, setFitnessData] = React.useState({
+    workoutType: post?.fitnessData?.workoutType || '',
+    duration: post?.fitnessData?.duration || 0,
+    intensity: post?.fitnessData?.intensity || '中等',
+    bodyWeight: post?.fitnessData?.bodyWeight || 0,
+    exercises: post?.fitnessData?.exercises || [],
+    mood: post?.fitnessData?.mood || '良好',
+    notes: post?.fitnessData?.notes || '',
+    calories: post?.fitnessData?.calories || 0,
+    heartRate: post?.fitnessData?.heartRate || 0,
+    bodyFat: post?.fitnessData?.bodyFat || 0,
+    muscleMass: post?.fitnessData?.muscleMass || 0
+  });
 
   // 验证表单
   const validateForm = () => {
@@ -340,6 +355,11 @@ function PostEditor({ post, onSave, onCancel, fixedCategory }) {
       mindMapData: formData.contentType === 'mindmap' ? mindMapData : null,
       contentType: formData.contentType
     };
+    
+    // 如果是健身分类，添加健身数据
+    if (formData.category === '健身') {
+      Object.assign(postData, fitnessData);
+    }
 
     try {
       await onSave(postData);
@@ -456,6 +476,184 @@ function PostEditor({ post, onSave, onCancel, fixedCategory }) {
             <p className="text-red-500 text-sm mt-1">{errors.summary}</p>
           )}
         </div>
+        
+        {/* 健身专用字段 */}
+        {(formData.category === '健身' || fixedCategory === '健身') && (
+          <div className="fitness-fields space-y-4 p-6 bg-green-50 rounded-lg border border-green-200">
+            <h3 className="text-lg font-semibold text-green-800 mb-4">🏋️ 健身记录</h3>
+            
+            {/* 第一行：运动类型和时长 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  运动类型
+                </label>
+                <select 
+                  value={fitnessData.workoutType}
+                  onChange={(e) => setFitnessData({...fitnessData, workoutType: e.target.value})}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                >
+                  <option value="">选择运动类型</option>
+                  <option value="有氧运动">有氧运动</option>
+                  <option value="力量训练">力量训练</option>
+                  <option value="瑜伽">瑜伽</option>
+                  <option value="跑步">跑步</option>
+                  <option value="游泳">游泳</option>
+                  <option value="骑行">骑行</option>
+                  <option value="健身操">健身操</option>
+                  <option value="拳击">拳击</option>
+                  <option value="其他">其他</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  运动时长 (分钟)
+                </label>
+                <input
+                  type="number"
+                  value={fitnessData.duration}
+                  onChange={(e) => setFitnessData({...fitnessData, duration: parseInt(e.target.value) || 0})}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  min="0"
+                  placeholder="例如：60"
+                />
+              </div>
+            </div>
+            
+            {/* 第二行：强度和心情 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  运动强度
+                </label>
+                <select 
+                  value={fitnessData.intensity}
+                  onChange={(e) => setFitnessData({...fitnessData, intensity: e.target.value})}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                >
+                  <option value="轻松">轻松</option>
+                  <option value="中等">中等</option>
+                  <option value="高强度">高强度</option>
+                  <option value="极限">极限</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  运动后心情
+                </label>
+                <select 
+                  value={fitnessData.mood}
+                  onChange={(e) => setFitnessData({...fitnessData, mood: e.target.value})}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                >
+                  <option value="很棒">很棒 😊</option>
+                  <option value="良好">良好 😌</option>
+                  <option value="一般">一般 😐</option>
+                  <option value="疲惫">疲惫 😴</option>
+                  <option value="不适">不适 😵</option>
+                </select>
+              </div>
+            </div>
+            
+            {/* 第三行：体重和卡路里 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  体重 (kg)
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={fitnessData.bodyWeight}
+                  onChange={(e) => setFitnessData({...fitnessData, bodyWeight: parseFloat(e.target.value) || 0})}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  min="0"
+                  placeholder="例如：65.5"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  消耗卡路里
+                </label>
+                <input
+                  type="number"
+                  value={fitnessData.calories}
+                  onChange={(e) => setFitnessData({...fitnessData, calories: parseInt(e.target.value) || 0})}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  min="0"
+                  placeholder="例如：300"
+                />
+              </div>
+            </div>
+            
+            {/* 第四行：心率和体脂率 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  平均心率 (bpm)
+                </label>
+                <input
+                  type="number"
+                  value={fitnessData.heartRate}
+                  onChange={(e) => setFitnessData({...fitnessData, heartRate: parseInt(e.target.value) || 0})}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  min="0"
+                  placeholder="例如：140"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  体脂率 (%)
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={fitnessData.bodyFat}
+                  onChange={(e) => setFitnessData({...fitnessData, bodyFat: parseFloat(e.target.value) || 0})}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  min="0"
+                  max="100"
+                  placeholder="例如：15.5"
+                />
+              </div>
+            </div>
+            
+            {/* 第五行：肌肉量和备注 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  肌肉量 (kg)
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  value={fitnessData.muscleMass}
+                  onChange={(e) => setFitnessData({...fitnessData, muscleMass: parseFloat(e.target.value) || 0})}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  min="0"
+                  placeholder="例如：45.2"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  额外备注
+                </label>
+                <input
+                  type="text"
+                  value={fitnessData.notes}
+                  onChange={(e) => setFitnessData({...fitnessData, notes: e.target.value})}
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                  placeholder="例如：今天状态不错"
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 内容 */}
         <div>
