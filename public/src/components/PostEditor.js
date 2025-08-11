@@ -683,13 +683,32 @@ function PostEditor({ post, onSave, onCancel, fixedCategory }) {
                   type="file"
                   multiple
                   accept="image/*"
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     const files = Array.from(e.target.files);
-                    const imageUrls = files.map(file => URL.createObjectURL(file));
-                    setPhotographyData({
-                      ...photographyData,
-                      images: [...photographyData.images, ...imageUrls]
-                    });
+                    
+                    // 将文件转换为base64
+                    const convertToBase64 = (file) => {
+                      return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(file);
+                      });
+                    };
+                    
+                    try {
+                      const base64Images = await Promise.all(
+                        files.map(file => convertToBase64(file))
+                      );
+                      
+                      setPhotographyData({
+                        ...photographyData,
+                        images: [...photographyData.images, ...base64Images]
+                      });
+                    } catch (error) {
+                      console.error('图片转换失败:', error);
+                      alert('图片上传失败，请重试');
+                    }
                   }}
                   className="hidden"
                   id="photo-upload"

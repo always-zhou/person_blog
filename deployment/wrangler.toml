@@ -13,6 +13,7 @@ id = "32793f9a2ae74667a543c9881675c75c"
 # 环境变量（如果需要）
 [vars]
 ENVIRONMENT = "production"
+# PASSWORD 变量将从 Cloudflare Dashboard 的环境变量中读取
 
 # 路由配置（部署后配置）
 routes = [

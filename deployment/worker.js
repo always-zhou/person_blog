@@ -35,6 +35,14 @@ export default {
         return await handleAPI(request, env, path, method);
       }
 
+      // 检查是否需要密码保护（除了登录页面和静态资源）
+      if (env.PASSWORD && !isPublicPath(path)) {
+        const authResult = await checkWebAuth(request, env);
+        if (authResult) {
+          return authResult; // 返回登录页面或重定向
+        }
+      }
+
       // --- Route Handling Logic ---
       let targetPath = path;
       
@@ -74,8 +82,265 @@ export default {
   },
 };
 
+// 验证密码
+function validatePassword(request, env) {
+  // 如果没有设置PASSWORD环境变量，则跳过验证
+  if (!env.PASSWORD) {
+    return true;
+  }
+  
+  const authHeader = request.headers.get('Authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return false;
+  }
+  
+  const token = authHeader.substring(7); // 移除 'Bearer ' 前缀
+  return token === env.PASSWORD;
+}
+
+// 检查是否为公共路径（不需要密码保护）
+function isPublicPath(path) {
+  const publicPaths = [
+    '/login.html',
+    '/src/js/login.js',
+    '/src/css/',
+    '/favicon.ico',
+    '/.well-known/',
+    '/robots.txt',
+    '/sitemap.xml'
+  ];
+  
+  // 检查是否为公共路径
+  return publicPaths.some(publicPath => path.startsWith(publicPath));
+}
+
+// 检查网站访问认证
+async function checkWebAuth(request, env) {
+  // 检查Cookie中的认证信息
+  const cookies = request.headers.get('Cookie') || '';
+  const authCookie = cookies.split(';').find(cookie => 
+    cookie.trim().startsWith('blog_auth=')
+  );
+  
+  if (authCookie) {
+    const token = authCookie.split('=')[1];
+    if (token === env.PASSWORD) {
+      return null; // 认证通过，继续处理请求
+    }
+  }
+  
+  // 如果是POST请求到登录接口，处理登录
+  if (request.method === 'POST' && request.url.includes('/login')) {
+    return await handleLogin(request, env);
+  }
+  
+  // 未认证，返回登录页面
+  return new Response(getLoginPage(), {
+    status: 200,
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      ...corsHeaders
+    }
+  });
+}
+
+// 处理登录请求
+async function handleLogin(request, env) {
+  try {
+    const formData = await request.formData();
+    const password = formData.get('password');
+    
+    if (password === env.PASSWORD) {
+      // 登录成功，设置Cookie并重定向
+      return new Response('', {
+        status: 302,
+        headers: {
+          'Location': '/',
+          'Set-Cookie': `blog_auth=${env.PASSWORD}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=86400`,
+          ...corsHeaders
+        }
+      });
+    } else {
+      // 登录失败
+      return new Response(getLoginPage(true), {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          ...corsHeaders
+        }
+      });
+    }
+  } catch (error) {
+    return new Response(getLoginPage(true), {
+      status: 400,
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        ...corsHeaders
+      }
+    });
+  }
+}
+
+// 生成登录页面HTML
+function getLoginPage(hasError = false) {
+  return `
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网站访问验证</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .login-container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        input[type="password"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            color: #999;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">🔐</div>
+        <h1>网站访问验证</h1>
+        <p class="subtitle">请输入访问密码继续浏览</p>
+        
+        ${hasError ? '<div class="error-message">密码错误，请重试</div>' : ''}
+        
+        <form method="POST" action="/login">
+            <div class="form-group">
+                <label for="password">访问密码</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    required 
+                    autocomplete="current-password"
+                    placeholder="请输入密码"
+                >
+            </div>
+            
+            <button type="submit" class="submit-btn">进入网站</button>
+        </form>
+        
+        <div class="footer">
+            <p>此网站受密码保护</p>
+        </div>
+    </div>
+    
+    <script>
+        // 自动聚焦到密码输入框
+        document.getElementById('password').focus();
+    </script>
+</body>
+</html>
+  `;
+}
+
 // 处理 API 请求
 async function handleAPI(request, env, path, method) {
+  // 验证密码（除了健康检查接口）
+  if (path !== '/api/health' && !validatePassword(request, env)) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+  
   const segments = path.split('/').filter(Boolean);
   
   if (segments[1] === 'posts') {
@@ -84,6 +349,24 @@ async function handleAPI(request, env, path, method) {
   
   if (segments[1] === 'stats') {
     return await handleStatsAPI(request, env, method);
+  }
+  
+  if (segments[1] === 'health') {
+    return new Response(JSON.stringify({ status: 'ok', timestamp: new Date().toISOString() }), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+  
+  if (segments[1] === 'logout') {
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { 
+        ...corsHeaders, 
+        'Content-Type': 'application/json',
+        'Set-Cookie': 'blog_auth=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0'
+      },
+    });
   }
   
   return new Response(JSON.stringify({ error: 'API endpoint not found' }), {

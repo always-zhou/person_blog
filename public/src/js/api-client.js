@@ -3,6 +3,32 @@ class APIClient {
     // 根据环境设置API基础URL
     this.baseURL = this.getAPIBaseURL();
     this.timeout = 30000; // 30秒超时，增加超时时间
+    this.password = null; // 存储密码
+  }
+
+  // 设置密码
+  setPassword(password) {
+    this.password = password;
+    // 将密码存储到sessionStorage中
+    if (password) {
+      sessionStorage.setItem('blog_password', password);
+    } else {
+      sessionStorage.removeItem('blog_password');
+    }
+  }
+
+  // 获取密码
+  getPassword() {
+    if (this.password) {
+      return this.password;
+    }
+    // 从sessionStorage中获取密码
+    return sessionStorage.getItem('blog_password');
+  }
+
+  // 检查是否已认证
+  isAuthenticated() {
+    return !!this.getPassword();
   }
 
   // 获取API基础URL
@@ -32,12 +58,20 @@ class APIClient {
     }
 
     const url = `${this.baseURL}${endpoint}`;
+    const headers = {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    };
+
+    // 添加认证头
+    const password = this.getPassword();
+    if (password) {
+      headers['Authorization'] = `Bearer ${password}`;
+    }
+
     const config = {
       timeout: this.timeout,
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
+      headers,
       ...options,
     };
 

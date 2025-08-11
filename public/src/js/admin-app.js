@@ -5,11 +5,32 @@ function AdminApp() {
   const [showEditor, setShowEditor] = React.useState(false);
   const [editingPost, setEditingPost] = React.useState(null);
   const [stats, setStats] = React.useState({});
+  const [isAuthenticated, setIsAuthenticated] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(true);
   const [blogManager] = React.useState(() => new HybridBlogManager());
 
+  // 认证检查
   React.useEffect(() => {
-    loadData();
-  }, [selectedCategory, searchTerm]);
+    const checkAuth = async () => {
+      try {
+        const authenticated = await window.authManager.checkAuth();
+        setIsAuthenticated(authenticated);
+      } catch (error) {
+        console.error('Authentication error:', error);
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkAuth();
+  }, []);
+
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      loadData();
+    }
+  }, [selectedCategory, searchTerm, isAuthenticated]);
 
   const loadData = async () => {
     try {
@@ -119,6 +140,36 @@ function AdminApp() {
     return new Date(dateString).toLocaleString('zh-CN');
   };
 
+  // 加载状态
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">正在加载...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 未认证状态
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">访问被拒绝</h1>
+          <p className="text-gray-600 mb-4">您需要输入正确的密码才能访问管理后台</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            重新验证
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* 顶部导航 */}
@@ -127,6 +178,7 @@ function AdminApp() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <h1 className="text-2xl font-bold text-gray-900">博客管理后台</h1>
+              <span className="text-sm text-green-600">✓ 已认证</span>
               <a 
                 href="index.html" 
                 className="text-blue-600 hover:text-blue-800 text-sm"
@@ -161,6 +213,12 @@ function AdminApp() {
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm"
               >
                 新建文章
+              </button>
+              <button 
+                onClick={() => window.authManager.logout()}
+                className="px-3 py-2 text-sm text-red-600 border border-red-300 rounded-lg hover:bg-red-50"
+              >
+                退出登录
               </button>
             </div>
           </div>
